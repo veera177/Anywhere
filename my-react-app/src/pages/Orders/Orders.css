@@ -1,0 +1,676 @@
+@import "../Checkout/Checkout.css";
+
+/* ── Orders Page ── */
+.orders-page {
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--bg-0), var(--bg-1) 48%, var(--bg-0));
+    color: var(--text);
+    font-family: "Sora", sans-serif;
+}
+
+/* ── Orders Navbar ── */
+.orders-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 18px;
+    padding: 16px 48px;
+    background: #FFD700;
+    color: #1a1a1a;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    font-family: "Poppins", sans-serif;
+}
+
+.orders-nav button {
+    background: #1a1a1a;
+    color: #FFD700;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.orders-nav button:hover {
+    transform: translateX(-2px);
+    opacity: 0.85;
+}
+
+.orders-nav strong {
+    font-family: "Poppins", sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1a1a1a;
+}
+
+.orders-nav span {
+    font-size: 0.82rem;
+    font-weight: 700;
+    opacity: 0.65;
+    text-align: right;
+}
+
+/* ── Orders Shell ── */
+.orders-shell {
+    width: min(1120px, 90%);
+    margin: 38px auto 70px;
+}
+
+.orders-hero,
+.orders-history-panel,
+.payment-history-panel {
+    animation: orderIn 0.45s ease both;
+}
+
+.orders-shell > header span {
+    color: var(--accent-2);
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+.orders-shell > header h1 {
+    margin: 4px 0 8px;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-family: "Poppins", sans-serif;
+    font-weight: 800;
+    letter-spacing: 0;
+    color: var(--text);
+}
+
+.orders-shell > header p {
+    margin: 0 0 28px;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.payment-history-panel,
+.orders-history-panel {
+    margin-bottom: 30px;
+}
+
+.payment-history-panel {
+    padding: 24px;
+    background:
+        linear-gradient(135deg, rgba(255, 216, 77, 0.26), rgba(255, 255, 255, 0.86)),
+        var(--card);
+    border: 1px solid rgba(245, 158, 11, 0.24);
+    border-radius: 16px;
+    box-shadow: 0 18px 44px rgba(31, 41, 55, 0.08);
+}
+
+.payment-history-head,
+.orders-section-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.payment-history-head span,
+.orders-section-title span {
+    color: var(--accent-2);
+    text-transform: uppercase;
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.payment-history-head h2,
+.orders-section-title h2 {
+    margin: 4px 0 0;
+    font-family: "Poppins", sans-serif;
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    line-height: 1.15;
+}
+
+.payment-metric {
+    min-width: 220px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #1f2937;
+    color: #fff;
+    text-align: right;
+}
+
+.payment-metric small {
+    display: block;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.payment-metric strong {
+    font-family: "Poppins", sans-serif;
+    font-size: 1.35rem;
+}
+
+.payment-ledger {
+    display: grid;
+    gap: 12px;
+}
+
+.payment-card-row {
+    display: grid;
+    grid-template-columns: 1.15fr 0.8fr 1.35fr 0.8fr 1fr;
+    gap: 14px;
+    align-items: center;
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(31, 41, 55, 0.1);
+    box-shadow: 0 10px 24px rgba(31, 41, 55, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.payment-card-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgba(31, 41, 55, 0.1);
+}
+
+.payment-card-row small,
+.payment-card-main span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.payment-card-row strong {
+    display: block;
+    color: var(--text);
+    font-size: 0.92rem;
+    overflow-wrap: anywhere;
+}
+
+.payment-card-main strong {
+    margin: 3px 0;
+    font-family: "Poppins", sans-serif;
+    font-size: 1.2rem;
+}
+
+.payment-transaction {
+    font-size: 0.82rem;
+}
+
+.payment-status {
+    width: fit-content;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--accent-2);
+}
+
+.payment-success {
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+}
+
+.payment-failed {
+    background: rgba(239, 68, 68, 0.1);
+    color: #b91c1c;
+}
+
+.payment-pending {
+    background: rgba(245, 158, 11, 0.14);
+    color: #b77900;
+}
+
+.payment-state {
+    padding: 22px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.76);
+    color: var(--muted);
+    text-align: center;
+    font-weight: 700;
+}
+
+.payment-state.error {
+    color: #b91c1c;
+    background: rgba(239, 68, 68, 0.08);
+}
+
+/* ── Order List & Cards ── */
+.orders-list {
+    display: grid;
+    gap: 18px;
+}
+
+.order-row {
+    background: var(--card);
+    border: 2px solid rgba(245, 158, 11, 0.18);
+    border-radius: 16px;
+    overflow: hidden;
+    animation: orderIn 0.4s ease both;
+    position: relative;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    transition: border-color 0.24s ease, box-shadow 0.24s ease;
+}
+
+.order-row:hover {
+    border-color: var(--accent-1);
+    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.14);
+}
+
+.order-row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-1), #FFD700, var(--accent-2));
+}
+
+.order-top,
+.order-body {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 18px 22px;
+}
+
+.order-top {
+    border-bottom: 1px solid rgba(245, 158, 11, 0.14);
+    align-items: center;
+}
+
+.order-top div {
+    display: grid;
+    gap: 3px;
+}
+
+.order-service-tag {
+    font-style: normal;
+    color: var(--accent-2);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.order-top div span,
+.order-meta span {
+    color: var(--muted);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.order-top div strong {
+    color: var(--text);
+    font-family: "Poppins", sans-serif;
+    font-size: 0.95rem;
+}
+
+/* ── Status Badge ── */
+.order-status {
+    padding: 7px 12px;
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--accent-2);
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.order-status i {
+    width: 7px;
+    height: 7px;
+    background: currentColor;
+    border-radius: 50%;
+    animation: statusPulse 1.5s ease-in-out infinite;
+    display: block;
+    flex-shrink: 0;
+}
+
+.status-delivered {
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+.status-cancelled {
+    background: rgba(239, 68, 68, 0.1);
+    color: #b91c1c;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* ── Order Body ── */
+.order-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.order-products p {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin: 0 0 8px;
+    color: var(--text);
+    font-size: 0.9rem;
+}
+
+.order-products p strong {
+    color: var(--accent-2);
+    font-weight: 700;
+}
+
+.order-meta p {
+    margin: 3px 0 12px;
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* ── Progress Tracker ── */
+.order-track {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 10px 22px 22px;
+}
+
+.order-track div {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 7px;
+    color: var(--muted);
+    font-size: 0.7rem;
+    text-align: center;
+}
+
+.order-track div::before {
+    content: "";
+    position: absolute;
+    height: 3px;
+    background: rgba(148, 163, 184, 0.3);
+    top: 6px;
+    left: -50%;
+    right: 50%;
+}
+
+.order-track div:first-child::before {
+    display: none;
+}
+
+.order-track i {
+    width: 14px;
+    height: 14px;
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 50%;
+    z-index: 1;
+    display: block;
+}
+
+.order-track .done {
+    color: var(--accent-2);
+    font-weight: 700;
+}
+
+.order-track .done::before,
+.order-track .done i {
+    background: var(--accent-1);
+}
+
+/* ── Order Footer ── */
+.order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 22px;
+    border-top: 1px solid rgba(245, 158, 11, 0.12);
+    background: var(--card-strong);
+}
+
+.order-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.order-footer .order-total {
+    border-top: 0;
+    padding: 0;
+    background: transparent;
+}
+
+.order-total {
+    display: grid;
+    gap: 2px;
+}
+
+.order-total span {
+    color: var(--muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.order-total strong {
+    font-family: "Poppins", sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text);
+}
+
+/* ── Track Button ── */
+.order-track-btn {
+    border: none;
+    background: var(--accent-1);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.order-transaction-btn,
+.order-invoice-btn {
+    border: 1px solid rgba(31, 41, 55, 0.18);
+    background: #fff;
+    color: #1f2937;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.order-invoice-btn {
+    background: #1f2937;
+    color: #FFD700;
+    border-color: #1f2937;
+}
+
+.order-track-btn:hover,
+.order-transaction-btn:hover,
+.order-invoice-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(245, 158, 11, 0.4);
+}
+
+.order-transaction-panel {
+    margin: 0 22px 18px;
+    padding: 18px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(120px, 1fr));
+    gap: 14px;
+    border: 1px solid rgba(245, 158, 11, 0.22);
+    border-radius: 14px;
+    background:
+        linear-gradient(135deg, rgba(255, 216, 77, 0.22), rgba(255, 255, 255, 0.9)),
+        var(--card);
+    animation: orderIn 0.25s ease both;
+}
+
+.order-transaction-panel span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.order-transaction-panel strong {
+    display: block;
+    color: var(--text);
+    font-size: 0.88rem;
+    overflow-wrap: anywhere;
+}
+
+.inline-payment-status {
+    width: fit-content;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.14);
+    color: #b77900;
+}
+
+.inline-payment-status.payment-success {
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+}
+
+.inline-payment-status.payment-failed {
+    background: rgba(239, 68, 68, 0.1);
+    color: #b91c1c;
+}
+
+/* ── State Messages ── */
+.orders-state {
+    padding: 40px;
+    background: var(--card);
+    border: 2px solid rgba(245, 158, 11, 0.18);
+    text-align: center;
+    border-radius: 16px;
+    color: var(--muted);
+    font-size: 1rem;
+}
+
+.orders-state.error {
+    color: #b91c1c;
+    border-color: rgba(239, 68, 68, 0.2);
+    background: rgba(239, 68, 68, 0.04);
+}
+
+.orders-signin-state h2 {
+    margin: 0 0 8px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 800;
+    color: var(--text);
+}
+
+.orders-signin-state p {
+    margin: 0 0 18px;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.orders-signin-state button {
+    min-height: 44px;
+    padding: 0 28px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent-1);
+    color: #fff;
+    font: inherit;
+    font-family: "Poppins", sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(245, 158, 11, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.orders-signin-state button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(245, 158, 11, 0.4);
+}
+
+/* ── Animations ── */
+@keyframes orderIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes statusPulse {
+    50% { opacity: 0.35; transform: scale(0.75); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 650px) {
+    .order-body {
+        grid-template-columns: 1fr;
+    }
+    .order-track span {
+        display: none;
+    }
+    .orders-shell {
+        width: calc(100% - 28px);
+    }
+    .orders-nav {
+        padding: 14px 18px;
+        grid-template-columns: auto 1fr;
+    }
+    .orders-nav span {
+        display: none;
+    }
+    .order-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .order-actions {
+        justify-content: stretch;
+    }
+    .order-actions button {
+        width: 100%;
+    }
+    .order-transaction-panel {
+        grid-template-columns: 1fr;
+        margin: 0 16px 16px;
+    }
+}
+
+@media (max-width: 980px) {
+    .payment-card-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    .payment-history-head,
+    .orders-section-title {
+        flex-direction: column;
+    }
+
+    .payment-metric {
+        width: 100%;
+        min-width: 0;
+        text-align: left;
+    }
+
+    .payment-card-row {
+        grid-template-columns: 1fr;
+    }
+}

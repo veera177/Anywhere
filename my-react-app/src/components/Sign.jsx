@@ -4,26 +4,60 @@ function Sign({ onBack, onRegisterClick }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await fetch('http://localhost:8080/Anywhere/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await response.json();
-            if (data.login) {
-                alert("Login Successful!");
-                // Navigate to dashboard or home here
-            } else {
-                alert("Invalid Email or Password");
+   const handleSubmit = async (e) => {
+
+    e.preventDefault();
+
+    try {
+
+        const response = await fetch(
+            "http://localhost:8080/api/auth/login",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    email,
+
+                    password
+
+                })
             }
-        } catch (error) {
-            console.error('Error:', error);
-            alert("Server error. Please try again later.");
-        }
-    };
+        );
+
+        const user = await response.json();
+
+       if (response.ok && user != null) {
+
+    localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+    );
+
+    alert("Login Successful!");
+    window.location.reload();
+
+    window.location.href = "/";
+
+} else {
+
+    alert("Invalid Email or Password");
+
+}
+
+    } catch (error) {
+
+        console.log(error);
+
+        alert("Server Error");
+
+    }
+
+};
 
     return (
         <div className="sign-container">

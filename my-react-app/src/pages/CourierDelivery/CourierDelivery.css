@@ -1,0 +1,644 @@
+/* ═══════════════════════════════════════════════
+   Anywhere — Courier (Premium MNC Redesign)
+   ═══════════════════════════════════════════════ */
+
+/* ── Color Palette & Theme ── 
+   Inspired by DHL/FedEx: High contrast, bold yellow, stark black/slate, clean white.
+*/
+:root {
+    --logistics-yellow: #ffcc00;
+    --logistics-yellow-hover: #e6b800;
+    --logistics-red: #d40511;
+    --logistics-slate: #1c2331;
+    --logistics-black: #0b0c10;
+    --logistics-gray-light: #f3f4f6;
+    --logistics-border: #e2e8f0;
+    --logistics-text: #1e293b;
+    --logistics-text-light: #64748b;
+}
+
+/* Base Page */
+.courier-premium-page {
+    min-height: 100vh;
+    background-color: var(--logistics-gray-light);
+    color: var(--logistics-text);
+    font-family: "Inter", "Sora", sans-serif;
+}
+
+/* ── Enterprise Header ── */
+.c-header {
+    background-color: var(--logistics-slate);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.c-header-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.c-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    color: #cbd5e1;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.c-back-btn:hover {
+    color: var(--logistics-yellow);
+}
+
+.c-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.c-logo-mark {
+    background: var(--logistics-yellow);
+    color: var(--logistics-black);
+    font-weight: 900;
+    font-size: 1.2rem;
+    padding: 6px 10px;
+    border-radius: 4px;
+    letter-spacing: -0.05em;
+}
+
+.c-brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.c-brand-text strong {
+    font-size: 1.2rem;
+    font-family: "Poppins", sans-serif;
+    line-height: 1.1;
+    color: #ffffff;
+}
+
+.c-brand-text span {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.c-auth-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 600;
+    background: rgba(255,255,255,0.05);
+    padding: 6px 12px;
+    border-radius: 999px;
+}
+
+.c-status-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #10b981;
+}
+
+/* ── Premium Hero ── */
+.c-hero {
+    background: linear-gradient(135deg, var(--logistics-yellow) 0%, #ffdb4d 100%);
+    color: var(--logistics-black);
+    padding: 60px 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    max-width: 1280px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.c-hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.c-hero-content h1 {
+    font-family: "Poppins", sans-serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    line-height: 1.1;
+    margin: 0 0 24px 0;
+    color: var(--logistics-slate);
+}
+
+.c-hero-content p {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: #334155;
+    margin: 0 0 40px 0;
+    max-width: 480px;
+}
+
+.c-hero-stats {
+    display: flex;
+    gap: 32px;
+}
+
+.c-stat {
+    display: flex;
+    flex-direction: column;
+    border-left: 3px solid var(--logistics-red);
+    padding-left: 16px;
+}
+
+.c-stat strong {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--logistics-slate);
+}
+
+.c-stat span {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+}
+
+.c-hero-graphic {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.c-vehicle-card {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    transform: perspective(1000px) rotateY(-5deg);
+}
+
+.c-vehicle-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.c-badge {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: var(--logistics-red);
+    color: #ffffff;
+    padding: 6px 12px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    border-radius: 4px;
+    z-index: 2;
+}
+
+/* ── Booking Section ── */
+.c-booking-container {
+    max-width: 1280px;
+    margin: -40px auto 60px;
+    padding: 0 32px;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+    position: relative;
+    z-index: 10;
+}
+
+/* Form Panel */
+.c-booking-panel {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    overflow: hidden;
+    border: 1px solid var(--logistics-border);
+}
+
+.c-panel-header {
+    background: var(--logistics-slate);
+    color: #ffffff;
+    padding: 20px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.c-panel-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+}
+
+.c-secure-badge {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.c-form {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.c-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.c-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.c-input-group label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--logistics-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.c-input-group input[type="text"],
+.c-input-group input[type="tel"],
+.c-input-group select {
+    padding: 14px 16px;
+    background: #f8fafc;
+    border: 2px solid var(--logistics-border);
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--logistics-text);
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.c-input-group input:focus,
+.c-input-group select:focus {
+    border-color: var(--logistics-slate);
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(28, 35, 49, 0.1);
+}
+
+/* Slider Customization */
+.c-slider-group {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--logistics-border);
+}
+
+.c-slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.c-slider-header strong {
+    font-size: 1.2rem;
+    color: var(--logistics-red);
+    font-weight: 800;
+}
+
+.c-range-slider {
+    width: 100%;
+    accent-color: var(--logistics-red);
+    height: 6px;
+    background: var(--logistics-border);
+    border-radius: 999px;
+    outline: none;
+}
+
+.c-help-text {
+    margin: 8px 0 0 0;
+    font-size: 0.8rem;
+    color: var(--logistics-text-light);
+}
+
+/* Addresses block with visual route line */
+.c-address-block {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-left: 28px;
+}
+
+.c-route-line {
+    position: absolute;
+    left: 8px;
+    top: 36px;
+    bottom: 36px;
+    width: 2px;
+    background: repeating-linear-gradient(to bottom, #cbd5e1 0, #cbd5e1 4px, transparent 4px, transparent 8px);
+}
+
+.c-pickup-label::before,
+.c-drop-label::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.c-pickup-label::before {
+    background: var(--logistics-slate);
+    top: 32px;
+}
+
+.c-drop-label::before {
+    background: var(--logistics-red);
+    bottom: 32px;
+}
+
+/* Footer / Submit */
+.c-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 24px;
+    border-top: 1px solid var(--logistics-border);
+}
+
+.c-quote-display {
+    display: flex;
+    flex-direction: column;
+}
+
+.c-quote-display span {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--logistics-text-light);
+    text-transform: uppercase;
+}
+
+.c-quote-display strong {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--logistics-slate);
+}
+
+.c-submit-btn {
+    background: var(--logistics-red);
+    color: #ffffff;
+    border: none;
+    padding: 16px 36px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.c-submit-btn:hover {
+    background: #b0040d;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(212, 5, 17, 0.25);
+}
+
+.c-submit-btn:disabled {
+    background: #cbd5e1;
+    color: #64748b;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.c-submit-btn.success {
+    background: #10b981;
+    color: #ffffff;
+}
+
+/* Alert */
+.c-alert {
+    padding: 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+.c-alert-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #f87171;
+}
+.c-alert-success {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #34d399;
+}
+
+/* ── Sidebar ── */
+.c-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.c-sidebar-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--logistics-border);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.c-sidebar-card h3 {
+    margin: 0 0 16px 0;
+    font-size: 1.1rem;
+    color: var(--logistics-slate);
+    border-bottom: 2px solid var(--logistics-yellow);
+    padding-bottom: 8px;
+    display: inline-block;
+}
+
+.c-hub-details strong {
+    display: block;
+    font-size: 1.2rem;
+    color: var(--logistics-slate);
+    margin-bottom: 4px;
+}
+
+.c-hub-details p {
+    color: var(--logistics-text-light);
+    margin: 0 0 12px 0;
+    font-size: 0.9rem;
+}
+
+.c-landmark {
+    display: inline-block;
+    background: #f1f5f9;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--logistics-text);
+}
+
+.c-map-mockup {
+    margin-top: 24px;
+    height: 140px;
+    background: #e2e8f0;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.c-map-grid {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(#cbd5e1 1px, transparent 1px), linear-gradient(90deg, #cbd5e1 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.5;
+}
+
+.c-map-pin {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    background: var(--logistics-red);
+    border-radius: 50%;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 10px rgba(212, 5, 17, 0.1);
+    animation: cPulse 2s infinite;
+}
+
+@keyframes cPulse {
+    0% { box-shadow: 0 0 0 0 rgba(212, 5, 17, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(212, 5, 17, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(212, 5, 17, 0); }
+}
+
+.c-sidebar-features {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.c-feature-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: #ffffff;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--logistics-border);
+}
+
+.c-feature-icon {
+    font-size: 1.5rem;
+    background: #f8fafc;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid var(--logistics-border);
+}
+
+.c-feature-text strong {
+    display: block;
+    color: var(--logistics-slate);
+    margin-bottom: 4px;
+    font-size: 0.95rem;
+}
+
+.c-feature-text span {
+    color: var(--logistics-text-light);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    display: block;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .c-hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 40px 32px 100px;
+    }
+    
+    .c-hero-content {
+        align-items: center;
+    }
+    
+    .c-hero-graphic {
+        display: none;
+    }
+
+    .c-booking-container {
+        grid-template-columns: 1fr;
+        margin-top: -60px;
+    }
+}
+
+@media (max-width: 600px) {
+    .c-form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .c-form-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 20px;
+    }
+    
+    .c-submit-btn {
+        width: 100%;
+    }
+    
+    .c-header-container {
+        padding: 16px;
+    }
+    
+    .c-hero {
+        padding: 40px 16px 80px;
+    }
+    
+    .c-hero-content h1 {
+        font-size: 2.5rem;
+    }
+    
+    .c-booking-container {
+        padding: 0 16px;
+    }
+    
+    .c-form {
+        padding: 20px;
+    }
+}

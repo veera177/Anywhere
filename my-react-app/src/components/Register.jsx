@@ -17,25 +17,63 @@ function Register({ onBack, onSignInClick }) {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await fetch('http://localhost:8080/Anywhere/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-            const data = await response.json();
-            if (data.success) {
-                alert("Registration Successful! Please Sign In.");
-                onSignInClick();
-            } else {
-                alert("Registration Failed. Email might already exist.");
+
+    e.preventDefault();
+
+    try {
+
+        const response = await fetch(
+            "http://localhost:8080/api/auth/register",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    fullName: formData.fullName,
+
+                    email: formData.email,
+
+                    phone: formData.phone,
+
+                    password: formData.password
+
+                })
             }
-        } catch (error) {
-            console.error('Error:', error);
-            alert("Server error. Please try again later.");
-        }
-    };
+        );
+
+        const message = await response.text();
+
+        if (response.ok) {
+
+    alert(message);
+
+    setFormData({
+        fullName: "",
+        email: "",
+        phone: "",
+        password: ""
+    });
+
+    onSignInClick();
+
+} else {
+
+    alert(message);
+}
+
+   } catch (error) {
+
+        console.log(error);
+
+        alert("Server Error");
+
+    }
+
+};
 
     return (
         <div className="sign-container">
@@ -48,9 +86,11 @@ function Register({ onBack, onSignInClick }) {
                     justify-content: center;
                     align-items: center;
                     min-height: 100vh;
-                    background-color: #ffffff;
+                    background-color: var(--bg-0);
+                    color: var(--text);
                     position: relative;
                     overflow: hidden;
+                    transition: background-color 0.4s ease, color 0.4s ease;
                 }
 
                 /* Background Pattern */
@@ -59,37 +99,39 @@ function Register({ onBack, onSignInClick }) {
                     position: absolute;
                     width: 100%;
                     height: 100%;
-                    background-image: radial-gradient(#e5e5e5 1px, transparent 1px);
+                    background-image: radial-gradient(var(--border) 1px, transparent 1px);
                     background-size: 20px 20px;
-                    opacity: 0.5;
+                    opacity: 0.6;
                     z-index: 0;
                 }
 
                 .sign-card {
-                    background: white;
+                    background: var(--card);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
                     padding: 40px;
-                    border-radius: 16px;
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+                    border-radius: 20px;
+                    box-shadow: var(--shadow-lg);
                     width: 100%;
                     max-width: 420px;
                     z-index: 1;
-                    border: 1px solid #eee;
+                    border: 1px solid var(--border);
                     animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
                 }
 
                 @keyframes slideUpFade {
-                    from { transform: translateY(40px); opacity: 0; }
+                    from { transform: translateY(30px); opacity: 0; }
                     to { transform: translateY(0); opacity: 1; }
                 }
 
                 .sign-header {
                     text-align: center;
-                    margin-bottom: 30px;
+                    margin-bottom: 24px;
                 }
 
                 .sign-header h1 {
                     margin: 0;
-                    color: #111;
+                    color: var(--text);
                     font-weight: 700;
                     font-size: 1.8rem;
                     letter-spacing: -0.5px;
@@ -97,7 +139,7 @@ function Register({ onBack, onSignInClick }) {
 
                 .sign-header p {
                     margin-top: 8px;
-                    color: #666;
+                    color: var(--muted);
                     font-size: 0.95rem;
                 }
 
@@ -108,7 +150,7 @@ function Register({ onBack, onSignInClick }) {
                 .form-group label {
                     display: block;
                     margin-bottom: 8px;
-                    color: #333;
+                    color: var(--text);
                     font-weight: 500;
                     font-size: 0.9rem;
                 }
@@ -116,41 +158,43 @@ function Register({ onBack, onSignInClick }) {
                 .form-input {
                     width: 100%;
                     padding: 14px;
-                    border: 1px solid #e1e1e1;
+                    border: 1px solid var(--border);
                     border-radius: 8px;
-                    font-size: 1rem;
+                    font-size: 0.95rem;
                     transition: all 0.2s ease;
                     box-sizing: border-box;
                     font-family: inherit;
-                    background-color: #f9f9f9;
+                    background-color: var(--bg-1);
+                    color: var(--text);
                 }
 
                 .form-input:focus {
-                    border-color: black;
-                    background-color: white;
-                    box-shadow: 0 0 0 4px rgba(0,0,0,0.05);
+                    border-color: var(--accent-1);
+                    background-color: var(--card-strong);
+                    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
                     outline: none;
                 }
 
                 .sign-btn {
                     width: 100%;
-                    padding: 16px;
-                    background-color: black;
+                    padding: 14px;
+                    background-color: var(--accent-1);
                     color: white;
                     border: none;
                     border-radius: 8px;
                     font-size: 1rem;
                     font-weight: 600;
                     cursor: pointer;
-                    transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+                    transition: all 0.2s ease;
                     font-family: inherit;
                     margin-top: 10px;
+                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
                 }
 
                 .sign-btn:hover {
-                    background-color: #333;
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    background-color: var(--accent-2);
+                    transform: translateY(-1px);
+                    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.35);
                 }
 
                 .sign-btn:active {
@@ -158,14 +202,14 @@ function Register({ onBack, onSignInClick }) {
                 }
 
                 .sign-footer {
-                    margin-top: 30px;
+                    margin-top: 24px;
                     text-align: center;
                     font-size: 0.9rem;
-                    color: #666;
+                    color: var(--muted);
                 }
 
                 .sign-link {
-                    color: black;
+                    color: var(--accent-1);
                     font-weight: 600;
                     text-decoration: none;
                     margin-left: 5px;
@@ -174,14 +218,15 @@ function Register({ onBack, onSignInClick }) {
 
                 .sign-link:hover {
                     text-decoration: underline;
+                    color: var(--accent-2);
                 }
 
                 .back-btn {
                     position: absolute;
                     top: 30px;
                     left: 30px;
-                    background: white;
-                    border: 1px solid #eee;
+                    background: var(--card-strong);
+                    border: 1px solid var(--border);
                     padding: 10px 20px;
                     border-radius: 30px;
                     font-size: 0.9rem;
@@ -190,15 +235,16 @@ function Register({ onBack, onSignInClick }) {
                     align-items: center;
                     gap: 8px;
                     font-family: inherit;
-                    color: #333;
+                    color: var(--text);
                     font-weight: 500;
                     transition: all 0.2s;
                     z-index: 10;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                    box-shadow: var(--shadow);
                 }
                 .back-btn:hover {
                     transform: translateX(-3px);
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    border-color: var(--border-hover);
+                    box-shadow: var(--shadow-lg);
                 }
             `}</style>
             

@@ -1,0 +1,867 @@
+.grocery-page {
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--bg-0), var(--bg-1) 48%, var(--bg-0));
+    color: var(--text);
+    font-family: "Sora", sans-serif;
+}
+
+.grocery-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 18px;
+    padding: 16px 48px;
+    background: var(--brand-yellow);
+    color: var(--brand-text);
+    box-shadow: var(--shadow);
+}
+
+.grocery-back-btn,
+.grocery-cart-pill,
+.grocery-category-row button,
+.grocery-card-bottom button,
+.checkout-btn {
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 800;
+}
+
+.grocery-back-btn {
+    background: var(--brand-text);
+    color: var(--brand-yellow);
+    padding: 10px 18px;
+}
+
+.grocery-brand,
+.grocery-location {
+    display: block;
+}
+
+.grocery-brand {
+    font-family: "Poppins", sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.grocery-location {
+    font-size: 0.82rem;
+    font-weight: 700;
+    opacity: 0.72;
+}
+
+.grocery-cart-pill {
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.34);
+    border: 1px solid rgba(0, 0, 0, 0.14);
+}
+
+.grocery-hero,
+.grocery-api-status,
+.grocery-map-section,
+.store-container,
+.grocery-layout,
+.grocery-category-row {
+    width: min(1180px, calc(100% - 48px));
+    margin-inline: auto;
+}
+
+.grocery-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 330px;
+    gap: 28px;
+    align-items: stretch;
+    margin-top: 38px;
+    padding: 48px;
+    border: var(--border-normal);
+    border-radius: 24px;
+    background: linear-gradient(120deg, rgba(255, 215, 0, 0.22), transparent 55%), var(--card);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.grocery-hero::after {
+    content: "";
+    position: absolute;
+    right: 390px;
+    bottom: 0;
+    width: 220px;
+    height: 4px;
+    border-radius: 999px;
+    background: repeating-linear-gradient(90deg, var(--accent-1) 0 18px, transparent 18px 34px);
+    animation: groceryRoute 1.5s linear infinite;
+}
+
+.grocery-kicker {
+    display: inline-flex;
+    width: fit-content;
+    margin-bottom: 16px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--card-strong);
+    border: var(--border-normal);
+    color: var(--accent-3);
+    font-weight: 800;
+    font-size: 0.82rem;
+}
+
+.grocery-hero h1 {
+    max-width: 780px;
+    margin: 0;
+    font-family: "Poppins", sans-serif;
+    font-size: clamp(2.3rem, 5vw, 4.4rem);
+    line-height: 1.04;
+}
+
+.grocery-hero p {
+    max-width: 680px;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.grocery-search-panel {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 10px;
+    max-width: 620px;
+    margin-top: 24px;
+    padding: 10px;
+    border-radius: 14px;
+    background: var(--card-strong);
+    border: var(--border-normal);
+}
+
+.grocery-search-panel select,
+.grocery-search-panel input {
+    width: 100%;
+    padding: 16px 18px;
+    border: var(--border-normal);
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--text);
+    font: inherit;
+    outline: none;
+}
+
+.grocery-search-panel select {
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.grocery-search-panel select:focus,
+.grocery-search-panel input:focus {
+    border-color: var(--accent-1);
+}
+
+.grocery-map-section {
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+    gap: 22px;
+    align-items: stretch;
+    margin-top: 26px;
+}
+
+.grocery-map-copy,
+.grocery-map-frame,
+.store-container {
+    background: var(--card);
+    border: var(--border-normal);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+}
+
+.grocery-map-copy {
+    padding: 26px;
+}
+
+.grocery-map-copy span {
+    color: var(--accent-3);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.grocery-map-copy h2 {
+    margin: 8px 0 12px;
+    font-family: "Poppins", sans-serif;
+    font-size: 1.5rem;
+}
+
+.grocery-map-copy p {
+    color: var(--muted);
+    line-height: 1.65;
+}
+
+.grocery-map-meta {
+    display: grid;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.grocery-map-meta strong {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--bg-1);
+    border: var(--border-normal);
+}
+
+.grocery-map-frame {
+    position: relative;
+    min-height: 330px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    background:
+        linear-gradient(135deg, rgba(255, 215, 0, 0.18), transparent 55%),
+        repeating-linear-gradient(45deg, var(--bg-1) 0 14px, var(--card) 14px 28px);
+}
+
+.grocery-map-frame::after {
+    content: "";
+    position: absolute;
+    inset: 14px;
+    border: 2px solid rgba(245, 158, 11, 0.36);
+    border-radius: 14px;
+    pointer-events: none;
+}
+
+.grocery-location-preview {
+    position: relative;
+    z-index: 1;
+    width: min(420px, calc(100% - 42px));
+    padding: 28px;
+    border-radius: 18px;
+    border: var(--border-card);
+    background: var(--card);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+}
+
+.grocery-location-pin {
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: var(--brand-yellow);
+    color: var(--brand-text);
+    font-size: 1.6rem;
+    box-shadow: var(--shadow);
+}
+
+.grocery-location-preview span {
+    color: var(--accent-3);
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.grocery-location-preview h3 {
+    margin: 8px 0;
+    font-family: "Poppins", sans-serif;
+    font-size: 1.6rem;
+}
+
+.grocery-location-preview p {
+    margin: 0 0 18px;
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.grocery-location-preview a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    background: var(--accent-1);
+    color: var(--bg-0);
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.grocery-hero-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 330px;
+    padding: 28px;
+    border: var(--border-card);
+    border-radius: 20px;
+    background:
+        linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.72) 100%),
+        url("https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80") center / cover;
+    color: #ffffff;
+    box-shadow: var(--shadow-lg);
+    animation: groceryFloat 4.5s ease-in-out infinite;
+}
+
+.grocery-hero-card span {
+    font-weight: 800;
+    opacity: 0.9;
+}
+
+.grocery-hero-card strong {
+    margin-top: 8px;
+    font-family: "Poppins", sans-serif;
+    font-size: 2.1rem;
+}
+
+.grocery-hero-card p {
+    color: rgba(255, 255, 255, 0.82);
+    margin-bottom: 0;
+}
+
+.grocery-api-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 18px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: var(--border-normal);
+    background: var(--card);
+    box-shadow: var(--shadow);
+}
+
+.grocery-api-status span {
+    flex: 0 0 auto;
+    padding: 7px 11px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.grocery-api-status.live span {
+    background: rgba(16, 185, 129, 0.15);
+    color: #047857;
+}
+
+.grocery-api-status.demo span {
+    background: rgba(245, 158, 11, 0.18);
+    color: var(--accent-3);
+}
+
+.grocery-api-status p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: right;
+}
+
+.grocery-category-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+}
+
+.grocery-category-row button {
+    padding: 12px 18px;
+    background: var(--card);
+    color: var(--text);
+    border: var(--border-normal);
+    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.grocery-category-row button:hover,
+.grocery-category-row button.active {
+    transform: translateY(-2px);
+    background: var(--card-strong);
+    border-color: var(--accent-1);
+}
+
+.grocery-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 26px;
+    align-items: start;
+    margin-top: 28px;
+    padding-bottom: 48px;
+}
+
+.grocery-products {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.grocery-card {
+    background: var(--card);
+    border: var(--border-normal);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    position: relative;
+    animation: groceryReveal 0.55s ease both;
+    transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+}
+
+.grocery-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 36%, rgba(255, 255, 255, 0.42), transparent 64%);
+    transform: translateX(-100%);
+    transition: transform 0.65s ease;
+    pointer-events: none;
+}
+
+.grocery-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--accent-1);
+    box-shadow: var(--shadow-lg);
+}
+
+.grocery-card:hover::after {
+    transform: translateX(100%);
+}
+
+.grocery-image-wrap {
+    position: relative;
+    height: 190px;
+    overflow: hidden;
+}
+
+.grocery-image-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.45s ease, filter 0.45s ease;
+}
+
+.grocery-card:hover img {
+    transform: scale(1.08);
+    filter: saturate(1.12);
+}
+
+.grocery-image-wrap span {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #111827;
+    font-weight: 800;
+    font-size: 0.82rem;
+}
+
+.grocery-card-body {
+    padding: 20px;
+}
+
+.grocery-card-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.grocery-card-title p {
+    margin: 0 0 5px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.grocery-card-title h2 {
+    margin: 0;
+    font-family: "Poppins", sans-serif;
+    font-size: 1.1rem;
+}
+
+.grocery-card-title span {
+    flex: 0 0 auto;
+    height: fit-content;
+    padding: 6px 9px;
+    border-radius: 999px;
+    background: var(--card-strong);
+    color: var(--accent-3);
+    font-weight: 900;
+}
+
+.grocery-desc {
+    min-height: 52px;
+    color: var(--muted);
+    line-height: 1.55;
+    font-size: 0.92rem;
+}
+
+.grocery-card-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+}
+
+.grocery-card-bottom strong {
+    font-family: "Poppins", sans-serif;
+    font-size: 1.1rem;
+}
+
+.grocery-card-bottom button,
+.checkout-btn {
+    padding: 11px 18px;
+    background: var(--accent-1);
+    color: var(--bg-0);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.grocery-card-bottom button:hover,
+.checkout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.grocery-cart {
+    position: sticky;
+    top: 86px;
+    padding: 24px;
+    border: var(--border-card);
+    border-radius: 18px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+}
+
+.grocery-cart h2 {
+    margin: 0 0 18px;
+    font-family: "Poppins", sans-serif;
+}
+
+.empty-cart {
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.cart-items {
+    display: grid;
+    gap: 12px;
+}
+
+.cart-item {
+    display: grid;
+    gap: 4px;
+    padding-bottom: 12px;
+    border-bottom: var(--border-normal);
+}
+
+.cart-item span {
+    font-weight: 700;
+}
+
+.cart-item strong {
+    color: var(--muted);
+    font-size: 0.86rem;
+}
+
+.cart-total {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+    font-size: 1.1rem;
+}
+
+.checkout-btn {
+    width: 100%;
+}
+
+.grocery-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.grocery-unit {
+    font-weight: 700;
+    color: var(--muted);
+    font-size: 0.86rem;
+    background: var(--bg-1);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: var(--border-normal);
+}
+
+.stock-warning {
+    color: #ff4d4d;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.out-of-stock-btn {
+    background: #999;
+    cursor: not-allowed;
+}
+
+/* Store Grid Section */
+.store-container {
+    width: min(1180px, calc(100% - 48px));
+    margin: 40px auto;
+    padding: 24px;
+}
+
+.store-section-header {
+    margin-bottom: 28px;
+}
+
+.store-section-header h2 {
+    font-family: "Poppins", sans-serif;
+    font-size: 2rem;
+    margin: 0 0 8px;
+    font-weight: 800;
+}
+
+.store-section-header p {
+    color: var(--muted);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.store-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.store-card-premium {
+    background: var(--card);
+    border: var(--border-normal);
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform 0.26s ease, box-shadow 0.26s ease, border-color 0.26s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.store-card-premium:hover {
+    transform: translateY(-6px);
+    border-color: var(--accent-1);
+    box-shadow: var(--shadow-lg);
+}
+
+.store-card-decor {
+    height: 120px;
+    background: linear-gradient(135deg, var(--brand-yellow), var(--accent-1));
+    position: relative;
+}
+
+.store-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #111;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.store-card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.store-card-body h3 {
+    font-family: "Poppins", sans-serif;
+    font-size: 1.2rem;
+    margin: 0 0 8px;
+    font-weight: 700;
+}
+
+.store-loc {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0 0 16px;
+    flex-grow: 1;
+}
+
+.store-rating-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.store-stars {
+    background: var(--card-strong);
+    color: var(--accent-3);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+.view-menu-link {
+    color: var(--accent-1);
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+
+/* Menu header */
+.store-menu-header {
+    width: min(1180px, calc(100% - 48px));
+    margin: 32px auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.back-to-stores-btn {
+    align-self: flex-start;
+    background: var(--card-strong);
+    color: var(--text);
+    border: var(--border-normal);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.back-to-stores-btn:hover {
+    background: var(--card);
+    border-color: var(--accent-1);
+}
+
+.selected-store-info h2 {
+    font-family: "Poppins", sans-serif;
+    font-size: 2.2rem;
+    margin: 0 0 6px;
+}
+
+.selected-store-info p {
+    color: var(--muted);
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--card);
+    border: var(--border-normal);
+    border-radius: 20px;
+}
+
+.no-results h3 {
+    margin: 0 0 8px;
+}
+.no-results p {
+    color: var(--muted);
+    margin: 0;
+}
+
+@keyframes groceryReveal {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes groceryFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-12px);
+    }
+}
+
+@keyframes groceryRoute {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 44px 0;
+    }
+}
+
+@media screen and (max-width: 980px) {
+    .grocery-hero,
+    .grocery-api-status,
+    .grocery-map-section,
+    .store-container,
+    .grocery-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .store-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grocery-hero-card {
+        min-height: 260px;
+    }
+
+    .grocery-cart {
+        position: static;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    .grocery-nav {
+        grid-template-columns: 1fr auto;
+        padding: 14px 18px;
+    }
+
+    .grocery-nav > div:nth-child(2) {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .grocery-hero,
+    .grocery-api-status,
+    .grocery-map-section,
+    .store-container,
+    .grocery-layout,
+    .grocery-category-row {
+        width: calc(100% - 28px);
+    }
+
+    .grocery-hero {
+        padding: 28px 18px;
+        border-radius: 18px;
+    }
+
+    .grocery-products {
+        grid-template-columns: 1fr;
+    }
+
+    .grocery-search-panel,
+    .store-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .grocery-api-status {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .grocery-api-status p {
+        text-align: left;
+    }
+}

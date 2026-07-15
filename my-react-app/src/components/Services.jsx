@@ -1,134 +1,115 @@
-/* ELITEROUTE
-
-Your Premier Delivery Partner.
-
-
----
-
-Home
-
-Fast. Reliable. Local.
-
-EliteRoute is your trusted local delivery partner. From gourmet meals and fresh groceries to vital medicines and daily essentials, we deliver everything you need—right to your doorstep.
-
-📞 Call to Order: +1 (555) 123-4567
-🌐 Order Online: eliteroute.com
-
-
----
-
-About Us
-
-EliteRoute was started with a simple goal: make local deliveries fast, affordable, and dependable. We connect customers with nearby shops and ensure quick delivery at a low cost.
-
-We support local businesses while giving customers the convenience of one-call ordering.
-
-Why EliteRoute?
-
-Local area specialists
-
-Affordable delivery charges
-
-Friendly delivery team
-
-Quick response & support
-
-
-
----
-
-Our Services
-
-🥗 Gourmet Food Delivery
-
-Order from your favorite local hotels, bakeries, and cafes.
-
-🛒 Premium Grocery Service
-
-Daily groceries, vegetables, fruits, and household items.
-
-💊 Essential Medicine Dispatch
-
-Essential medicines delivered safely from nearby pharmacies.
-
-📦 Secure Local Courier
-
-Documents, parcels, and shop-to-customer deliveries.
-
-
----
-
-How It Works
-
-1. Call us or place your order online
-
-
-2. We pick up from the nearest shop
-
-
-3. Our delivery partner reaches your doorstep
-
-
-
-Simple. Fast. Reliable.
-
-
----
-
-Delivery Charges
-
-We follow a transparent pricing policy.
-
-✅ We deliver at Dining Price and Store Price only
-(No extra product markup)
-
-Customers pay only the actual shop/restaurant price plus delivery charge.
-
-📌 Exact delivery charges will be informed before order confirmation.
-
-
----
-
-Partner With Us (For Shops & Sellers)
-
-Grow your business with EliteRoute.
-
-Benefits:
-
-Increased local orders
-
-No delivery headache
-
-Reliable delivery team
-
-Easy coordination
-
-
-📞 Contact us to partner: +1 (555) 123-4567
-
-
----
-
-Contact Us
-
-📍 Service Area: Local & Nearby Locations
-📞 Phone: +1 (555) 123-4567
-🌐 Website: eliteroute.com
-
-EliteRoute – Your Premier Delivery Partner 💙*/
-
-function Services(){
-    return(
+import { useState } from 'react';
+
+const servicesData = [
+    {
+        id: 'food',
+        title: 'Gourmet Food Delivery',
+        icon: 'https://cdn-icons-png.flaticon.com/512/706/706164.png',
+        desc: 'Craving something delicious? Order from your favorite local hotels, bakeries, and premium cafes. Fresh hot meals delivered to your doorstep in minutes.',
+        link: 'www.anywhere.com/food'
+    },
+    {
+        id: 'grocery',
+        title: 'Premium Grocery Service',
+        icon: 'https://cdn-icons-png.flaticon.com/512/3081/3081840.png',
+        desc: 'Keep your kitchen stocked without stepping out. Get daily farm-fresh groceries, organic vegetables, seasonal fruits, and household items delivered safely.',
+        link: 'www.anywhere.com/grocery'
+    },
+    {
+        id: 'medicine',
+        title: 'Essential Medicine Dispatch',
+        icon: 'https://cdn-icons-png.flaticon.com/512/4320/4320350.png',
+        desc: 'Your health is our priority. Get essential prescription and over-the-counter medicines delivered securely from nearby trusted pharmacies.',
+        link: 'www.anywhere.com/pharmacy'
+    },
+    {
+        id: 'courier',
+        title: 'Secure Local Courier',
+        icon: 'https://cdn-icons-png.flaticon.com/512/3144/3144350.png',
+        desc: 'Need to send documents, keys, shop-to-customer parcels or gifts? Our reliable couriers ensure safe, fast, and prompt local transit.',
+        link: 'www.anywhere.com/courier'
+    }
+];
+
+function Services({ onFoodOpen, onGroceryOpen, onMedicineOpen, onCourierOpen }) {
+    const [activeServiceId, setActiveServiceId] = useState(servicesData[0].id);
+
+    const activeService = servicesData.find(s => s.id === activeServiceId) || servicesData[0];
+
+    const openActiveService = () => {
+        if (activeService.id === 'food' && onFoodOpen) {
+            onFoodOpen();
+        } else if (activeService.id === 'grocery' && onGroceryOpen) {
+            onGroceryOpen();
+        } else if (activeService.id === 'medicine' && onMedicineOpen) {
+            onMedicineOpen();
+        } else if (activeService.id === 'courier' && onCourierOpen) {
+            onCourierOpen();
+        }
+    };
+
+    return (
         <div className="services" id="services">
             <h1>Our Services</h1>
-            <ul>
-                <li><img src="https://cdn-icons-png.flaticon.com/512/706/706164.png" alt="Food" className="service-icon" /> Gourmet Food Delivery</li>
-                <li><img src="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" alt="Grocery" className="service-icon" /> Premium Grocery Service</li>
-                <li><img src="https://cdn-icons-png.flaticon.com/512/4320/4320350.png" alt="Medicine" className="service-icon" /> Essential Medicine Dispatch</li>
-                <li><img src="https://cdn-icons-png.flaticon.com/512/3144/3144350.png" alt="Courier" className="service-icon" /> Secure Local Courier</li>
-                <li style={{ margin: '0 auto' }}><img src="https://cdn-icons-png.flaticon.com/512/2933/2933405.png" alt="Delivery Charges" className="service-icon" /> Transparent Delivery Fees</li>
+            <ul className="services-grid">
+                {servicesData.map((service) => (
+                    <li 
+                        key={service.id}
+                        className={`service-card ${activeServiceId === service.id ? 'active' : ''}`}
+                        onClick={() => setActiveServiceId(service.id)}
+                        role="button"
+                        aria-pressed={activeServiceId === service.id}
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                setActiveServiceId(service.id);
+                            }
+                        }}
+                    >
+                        <img 
+                            src={service.icon} 
+                            alt={service.title} 
+                            className="service-icon" 
+                        />
+                        <span className="service-title">{service.title}</span>
+                    </li>
+                ))}
             </ul>
+
+            {activeService && (
+                <div className="service-details">
+                    <h2>{activeService.title}</h2>
+                    <p>{activeService.desc}</p>
+                    <div className="details-meta">
+                        <span>🌐 Website: </span>
+                        <a href={`https://${activeService.link}`} target="_blank" rel="noopener noreferrer" className="website">
+                            {activeService.link}
+                        </a>
+                    </div>
+                    {activeService.id === 'food' && (
+                        <button className="button1 service-open-btn" onClick={openActiveService}>
+                            View Food Menu
+                        </button>
+                    )}
+                    {activeService.id === 'grocery' && (
+                        <button className="button1 service-open-btn" onClick={openActiveService}>
+                            View Grocery Stores
+                        </button>
+                    )}
+                    {activeService.id === 'medicine' && (
+                        <button className="button1 service-open-btn" onClick={openActiveService}>
+                            View Pharmacy Menu
+                        </button>
+                    )}
+                    {activeService.id === 'courier' && (
+                        <button className="button1 service-open-btn" onClick={openActiveService}>
+                            Book Local Courier
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
-    )
+    );
 }
-export default Services
+
+export default Services;

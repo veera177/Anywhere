@@ -1,3 +1,10 @@
 vite-err.log
 vite-out.log
 my-react-app/undo/
+my-react-app/dist/
+my-react-app/node_modules/
+my-react-app/vite-ui.log
+backend/target/
+backend/.idea/
+backend/.agents/
+backend/*.log

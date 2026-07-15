@@ -91,11 +91,11 @@ public class CartDAO {
                 c.service_type,
                 c.quantity,
 
-                COALESCE(f.name, gp.name, mp.name) AS name,
-                COALESCE(f.price, gp.price, mp.price) AS price,
-                COALESCE(f.rating, gp.rating, mp.rating, 0) AS rating,
-                COALESCE(f.image_url, gp.image_url, mp.image_url) AS image_url,
-                COALESCE(r.name, gs.name, p.name, 'Anywhere Courier') AS restaurant_name
+                COALESCE(f.name, gp.name, mp.name, c.product_name) AS name,
+                COALESCE(f.price, gp.price, mp.price, c.price) AS price,
+                COALESCE(f.rating, gp.rating, mp.rating, c.rating, 0) AS rating,
+                COALESCE(f.image_url, gp.image_url, mp.image_url, c.image_url) AS image_url,
+                COALESCE(r.name, gs.name, p.name, c.provider_name, 'Anywhere Courier') AS restaurant_name
 
             FROM cart c
 

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SWASTHYA - System Architecture</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #ffffff;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+
+        .architecture-container {
+            width: 1400px;
+            max-width: 100%;
+        }
+
+        /* ── USER ICON ── */
+        .user-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .user-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a3a5c, #2c5f8a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(26, 58, 92, 0.35);
+        }
+
+        .user-circle svg {
+            width: 54px;
+            height: 54px;
+            fill: #ffffff;
+        }
+
+        .user-label {
+            font-size: 22px;
+            font-weight: 900;
+            color: #1a3a5c;
+            margin-top: 8px;
+            letter-spacing: 2px;
+        }
+
+        .curved-arrow-container {
+            position: relative;
+            width: 100px;
+            height: 50px;
+            margin-top: -15px;
+        }
+
+        /* ── CONNECTOR ARROWS ── */
+        .arrow-down {
+            display: flex;
+            justify-content: center;
+            margin: 6px 0;
+        }
+
+        .arrow-down svg {
+            width: 36px;
+            height: 36px;
+        }
+
+        /* ── LAYER STYLES ── */
+        .layer {
+            border-radius: 18px;
+            padding: 28px 32px 24px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .layer-header {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 22px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .layer-header-dark {
+            color: #1a1a2e;
+        }
+
+        /* Layer 1 - User Interaction */
+        .layer-1 {
+            background: linear-gradient(135deg, #1a2a6c, #1e3a7a);
+            box-shadow: 0 6px 25px rgba(26, 42, 108, 0.3);
+        }
+
+        /* Layer 2 - Hybrid AI */
+        .layer-2 {
+            background: linear-gradient(135deg, #0d7377, #14919b);
+            box-shadow: 0 6px 25px rgba(13, 115, 119, 0.3);
+        }
+
+        /* Layer 3 - Healthcare Management */
+        .layer-3 {
+            background: linear-gradient(135deg, #43a047, #66bb6a);
+            box-shadow: 0 6px 25px rgba(67, 160, 71, 0.3);
+        }
+
+        /* Layer 4 - Emergency Response */
+        .layer-4 {
+            background: linear-gradient(135deg, #e65100, #f57c00);
+            box-shadow: 0 6px 25px rgba(230, 81, 0, 0.3);
+        }
+
+        /* Layer 5 - Health Data Repository */
+        .layer-5 {
+            background: linear-gradient(135deg, #546e7a, #78909c);
+            box-shadow: 0 6px 25px rgba(84, 110, 122, 0.3);
+        }
+
+        /* ── MODULE CARDS ── */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 14px;
+        }
+
+        .modules-grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .module-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 14px;
+            padding: 18px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 110px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+            transition: transform 0.2s;
+        }
+
+        .module-card svg {
+            width: 44px;
+            height: 44px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .module-card .module-text {
+            font-size: 16px;
+            font-weight: 800;
+            color: #1a1a2e;
+            line-height: 1.25;
+            letter-spacing: 0.3px;
+        }
+
+        /* ── AI FRAMEWORK LAYOUT ── */
+        .ai-framework {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .ai-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .ai-brain-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .ai-brain-icon svg {
+            width: 50px;
+            height: 50px;
+            fill: #ffffff;
+        }
+
+        .ai-brain-label {
+            font-size: 20px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 1px;
+        }
+
+        .ai-module {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 20px;
+        }
+
+        .ai-module-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .flow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .flow-step {
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .flow-step svg {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .flow-step .step-text {
+            font-size: 15px;
+            font-weight: 800;
+            color: #1a1a2e;
+        }
+
+        .flow-arrow {
+            display: flex;
+            justify-content: center;
+            padding: 2px 0;
+        }
+
+        .flow-arrow svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* ── EMERGENCY FLOW ── */
+        .emergency-flow {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .emergency-step {
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 12px;
+            padding: 14px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-width: 130px;
+            max-width: 160px;
+        }
+
+        .emergency-step svg {
+            width: 36px;
+            height: 36px;
+            margin-bottom: 8px;
+        }
+
+        .emergency-step .step-text {
+            font-size: 14px;
+            font-weight: 800;
+            color: #1a1a2e;
+            line-height: 1.2;
+        }
+
+        .emergency-arrow svg {
+            width: 28px;
+            height: 28px;
+            fill: #ffffff;
+        }
+
+        /* ── CAPTION ── */
+        .caption {
+            text-align: center;
+            margin-top: 28px;
+            font-family: 'Merriweather', serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── BIDIRECTIONAL ARROWS ── */
+        .bi-arrow {
+            display: flex;
+            justify-content: center;
+            margin: 6px 0;
+        }
+
+        .bi-arrow svg {
+            width: 36px;
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="architecture-container">
+
+    <!-- ═══════════ USER SECTION ═══════════ -->
+    <div class="user-section">
+        <div class="user-circle">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        </div>
+        <!-- Curved arrow -->
+        <svg width="60" height="35" viewBox="0 0 60 35" style="margin-top:-8px;">
+            <path d="M30 0 Q30 15, 45 20" stroke="#1a3a5c" stroke-width="2.5" fill="none" marker-end="url(#arrowCurve)"/>
+            <defs><marker id="arrowCurve" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#1a3a5c"/></marker></defs>
+        </svg>
+        <div class="user-label">USER</div>
+    </div>
+
+    <!-- Arrow Down -->
+    <div class="arrow-down">
+        <svg viewBox="0 0 24 24" fill="#1a3a5c"><path d="M12 2v16m0 0l-6-6m6 6l6-6" stroke="#1a3a5c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M12 22l-8-8h16z" fill="#1a3a5c"/></svg>
+    </div>
+
+    <!-- ═══════════ LAYER 1: USER INTERACTION ═══════════ -->
+    <div class="layer layer-1">
+        <div class="layer-header">1. User Interaction Layer</div>
+        <div class="modules-grid">
+            <!-- User Authentication -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#1a2a6c"><path d="M24 4C18.48 4 14 8.48 14 14v4H10c-2.2 0-4 1.8-4 4v18c0 2.2 1.8 4 4 4h28c2.2 0 4-1.8 4-4V22c0-2.2-1.8-4-4-4h-4v-4c0-5.52-4.48-10-10-10zm0 4c3.31 0 6 2.69 6 6v4H18v-4c0-3.31 2.69-6 6-6zm0 18c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z"/></svg>
+                <span class="module-text">User Authentication</span>
+            </div>
+            <!-- Symptom Submission -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#1a2a6c"><path d="M38 6H10C7.8 6 6 7.8 6 10v28c0 2.2 1.8 4 4 4h28c2.2 0 4-1.8 4-4V10c0-2.2-1.8-4-4-4zM22 34H14v-4h8v4zm0-8H14v-4h8v4zm0-8H14v-4h8v4zm12 16h-8v-4h8v4zm0-8h-8v-4h8v4zm0-8h-8v-4h8v4z"/></svg>
+                <span class="module-text">Symptom Submission</span>
+            </div>
+            <!-- Accident Monitoring -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#1a2a6c"><path d="M4 40h40L24 6 4 40zm22-6h-4v-4h4v4zm0-8h-4v-8h4v8z"/></svg>
+                <span class="module-text">Accident Monitoring</span>
+            </div>
+            <!-- Healthcare Dashboard -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#1a2a6c"><path d="M6 6v36h36V6H6zm16 32H10v-8h12v8zm0-12H10V18h12v8zm14 12H26v-20h10v20zm0-24H10v-4h26v4z"/></svg>
+                <span class="module-text">Healthcare Dashboard</span>
+            </div>
+            <!-- Emergency Contacts -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#1a2a6c"><path d="M40 8H8c-2.2 0-4 1.8-4 4v24c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4V12c0-2.2-1.8-4-4-4zM24 14c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6 2.7-6 6-6zm12 22H12v-2c0-4 8-6.2 12-6.2S36 30 36 34v2z"/></svg>
+                <span class="module-text">Emergency Contacts</span>
+            </div>
+            <!-- Notifications -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#1a2a6c"><path d="M24 44c2.2 0 4-1.8 4-4h-8c0 2.2 1.8 4 4 4zm12-12V22c0-6.1-4.3-11.3-10-12.6V8c0-1.1-.9-2-2-2s-2 .9-2 2v1.4C16.3 10.7 12 15.9 12 22v10l-4 4v2h32v-2l-4-4z"/></svg>
+                <span class="module-text">Notifications</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bidirectional Arrow -->
+    <div class="bi-arrow">
+        <svg viewBox="0 0 30 50" fill="#333">
+            <path d="M15 0L8 10h14L15 0z"/>
+            <rect x="13" y="10" width="4" height="30" rx="1"/>
+            <path d="M15 50L22 40H8L15 50z"/>
+        </svg>
+    </div>
+
+    <!-- ═══════════ LAYER 2: HYBRID AI FRAMEWORK ═══════════ -->
+    <div class="layer layer-2">
+        <div class="layer-header">2. Hybrid AI Framework</div>
+        <div class="ai-framework">
+            <!-- Left: Disease Prediction Module -->
+            <div class="ai-module">
+                <div class="ai-module-title">Disease Prediction Module</div>
+                <div class="flow-steps">
+                    <div class="flow-step">
+                        <svg viewBox="0 0 32 32" fill="#0d7377"><path d="M16 2C8.27 2 2 8.27 2 16s6.27 14 14 14 14-6.27 14-14S23.73 2 16 2zm-2 20l-6-6 2.83-2.83L14 16.34l7.17-7.17L24 12 14 22z"/></svg>
+                        <span class="step-text">Symptom Analysis</span>
+                    </div>
+                    <div class="flow-arrow"><svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M12 20l-5-5h10z" fill="#fff"/></svg></div>
+                    <div class="flow-step">
+                        <svg viewBox="0 0 32 32" fill="#0d7377"><path d="M4 4h8v8H4zm0 16h8v8H4zM20 4h8v8h-8zM20 20h8v8h-8zM14 10h4v12h-4z"/></svg>
+                        <span class="step-text">Feature Processing</span>
+                    </div>
+                    <div class="flow-arrow"><svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M12 20l-5-5h10z" fill="#fff"/></svg></div>
+                    <div class="flow-step">
+                        <svg viewBox="0 0 32 32" fill="#0d7377"><path d="M4 26V6h4v14l6-8 4 6 6-12h4v20z"/></svg>
+                        <span class="step-text">Analytics</span>
+                    </div>
+                    <div class="flow-arrow"><svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M12 20l-5-5h10z" fill="#fff"/></svg></div>
+                    <div class="flow-step">
+                        <svg viewBox="0 0 32 32" fill="#0d7377"><path d="M26 2H6C3.8 2 2 3.8 2 6v20c0 2.2 1.8 4 4 4h20c2.2 0 4-1.8 4-4V6c0-2.2-1.8-4-4-4zM8 8h16v2H8V8zm0 4h16v2H8v-2zm0 4h12v2H8v-2zm10 10H8v-6h10v6z"/></svg>
+                        <span class="step-text">Medical Report</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center: AI Brain -->
+            <div class="ai-center">
+                <div class="ai-brain-icon">
+                    <svg viewBox="0 0 48 48"><path d="M24 4C14 4 8 12 8 20c0 5 2 9 5.5 12.5L14 42h20l.5-9.5C38 29 40 25 40 20c0-8-6-16-16-16zm-4 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm8 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm0-8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" fill="#fff"/></svg>
+                </div>
+                <div class="ai-brain-label">AI Brain</div>
+                <svg width="4" height="80" style="margin: 8px 0;"><line x1="2" y1="0" x2="2" y2="80" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-dasharray="6,4"/></svg>
+            </div>
+
+            <!-- Right: Accident Detection Module -->
+            <div class="ai-module">
+                <div class="ai-module-title">Accident Detection Module</div>
+                <div class="flow-steps">
+                    <div class="flow-step">
+                        <svg viewBox="0 0 32 32" fill="#0d7377"><path d="M22 2H10C8.3 2 7 3.3 7 5v22c0 1.7 1.3 3 3 3h12c1.7 0 3-1.3 3-3V5c0-1.7-1.3-3-3-3zm-6 26c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm8-6H8V6h16v16z"/></svg>
+                        <span class="step-text">Smartphone Sensor</span>
+                    </div>
+                    <div class="flow-arrow"><svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M12 20l-5-5h10z" fill="#fff"/></svg></div>
+                    <div class="flow-step">
+                        <svg viewBox="0 0 32 32" fill="#0d7377"><path d="M2 16h4l3-8 4 16 4-12 3 6 4-10 3 8h3" stroke="#0d7377" stroke-width="2" fill="none"/></svg>
+                        <span class="step-text">Motion Signal</span>
+                    </div>
+                    <div class="flow-arrow"><svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M12 20l-5-5h10z" fill="#fff"/></svg></div>
+                    <div class="flow-step">
+                        <svg viewBox="0 0 32 32" fill="#0d7377"><path d="M16 2L2 28h28L16 2zm-1 10h2v8h-2v-8zm0 10h2v2h-2v-2z"/></svg>
+                        <span class="step-text">Warning</span>
+                    </div>
+                    <div class="flow-arrow"><svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M12 20l-5-5h10z" fill="#fff"/></svg></div>
+                    <div class="flow-step">
+                        <svg viewBox="0 0 32 32" fill="#0d7377"><path d="M16 2C8.27 2 2 8.27 2 16s6.27 14 14 14 14-6.27 14-14S23.73 2 16 2zm-2 20l-6-6 2-2 4 4 8-8 2 2-10 10z"/></svg>
+                        <span class="step-text">Accident Detection</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bidirectional Arrow -->
+    <div class="bi-arrow">
+        <svg viewBox="0 0 30 50" fill="#333">
+            <path d="M15 0L8 10h14L15 0z"/>
+            <rect x="13" y="10" width="4" height="30" rx="1"/>
+            <path d="M15 50L22 40H8L15 50z"/>
+        </svg>
+    </div>
+
+    <!-- ═══════════ LAYER 3: HEALTHCARE MANAGEMENT ═══════════ -->
+    <div class="layer layer-3">
+        <div class="layer-header">3. Healthcare Management Module</div>
+        <div class="modules-grid">
+            <!-- Electronic Health Records -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#2e7d32"><path d="M14 2C11.8 2 10 3.8 10 6v36c0 2.2 1.8 4 4 4h24c2.2 0 4-1.8 4-4V14L28 2H14zm14 12V5l11 9H28zm-10 8h12v3H18v-3zm0 6h12v3H18v-3zm0 6h8v3h-8v-3z"/></svg>
+                <span class="module-text">Electronic Health Records</span>
+            </div>
+            <!-- Medicine Reminder -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#2e7d32"><path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm2 22H14v-4h12V10h4v16z"/></svg>
+                <span class="module-text">Medicine Reminder</span>
+            </div>
+            <!-- Health Report Generation -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#2e7d32"><path d="M38 6H10C7.8 6 6 7.8 6 10v28c0 2.2 1.8 4 4 4h28c2.2 0 4-1.8 4-4V10c0-2.2-1.8-4-4-4zm-4 22H26v8h-4v-8H14v-4h8v-8h4v8h8v4z"/></svg>
+                <span class="module-text">Health Report Generation</span>
+            </div>
+            <!-- Nearby Hospital Identification -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#2e7d32"><path d="M24 2C15.2 2 8 9.2 8 18c0 12 16 28 16 28s16-16 16-28c0-8.8-7.2-16-16-16zm4 20h-4v4h-4v-4h-4v-4h4v-4h4v4h4v4z"/></svg>
+                <span class="module-text">Nearby Hospital Identification</span>
+            </div>
+            <!-- Emergency Medical Information -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#2e7d32"><path d="M42 20H28V6h-8v14H6v8h14v14h8V28h14z"/></svg>
+                <span class="module-text">Emergency Medical Information</span>
+            </div>
+            <!-- Prediction History -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#2e7d32"><path d="M24 4C12.95 4 4 12.95 4 24h8c0-6.63 5.37-12 12-12s12 5.37 12 12-5.37 12-12 12v8c11.05 0 20-8.95 20-20S35.05 4 24 4zm-2 12v14l12 7.2-2 3.3L18 32V16h4z"/></svg>
+                <span class="module-text">Prediction History</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bidirectional Arrow -->
+    <div class="bi-arrow">
+        <svg viewBox="0 0 30 50" fill="#333">
+            <path d="M15 0L8 10h14L15 0z"/>
+            <rect x="13" y="10" width="4" height="30" rx="1"/>
+            <path d="M15 50L22 40H8L15 50z"/>
+        </svg>
+    </div>
+
+    <!-- ═══════════ LAYER 4: EMERGENCY RESPONSE ═══════════ -->
+    <div class="layer layer-4">
+        <div class="layer-header">4. Emergency Response Module</div>
+        <div class="emergency-flow">
+            <!-- Accident Verification -->
+            <div class="emergency-step">
+                <svg viewBox="0 0 36 36" fill="#e65100"><path d="M18 3L3 33h30L18 3zm-1 12h2v8h-2v-8zm0 10h2v2h-2v-2z"/></svg>
+                <span class="step-text">Accident Verification</span>
+            </div>
+            <div class="emergency-arrow"><svg viewBox="0 0 24 16"><path d="M2 8h16M18 8l-5-5M18 8l-5 5" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <!-- Emergency SOS -->
+            <div class="emergency-step">
+                <svg viewBox="0 0 36 36" fill="#e65100"><path d="M18 2C9.2 2 2 9.2 2 18s7.2 16 16 16 16-7.2 16-16S26.8 2 18 2zm1 24h-2v-2h2v2zm0-4h-2V10h2v12z"/></svg>
+                <span class="step-text">Emergency SOS</span>
+            </div>
+            <div class="emergency-arrow"><svg viewBox="0 0 24 16"><path d="M2 8h16M18 8l-5-5M18 8l-5 5" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <!-- GPS Location Sharing -->
+            <div class="emergency-step">
+                <svg viewBox="0 0 36 36" fill="#e65100"><path d="M18 2C11.4 2 6 7.4 6 14c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12zm0 16c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z"/></svg>
+                <span class="step-text">GPS Location Sharing</span>
+            </div>
+            <div class="emergency-arrow"><svg viewBox="0 0 24 16"><path d="M2 8h16M18 8l-5-5M18 8l-5 5" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <!-- Emergency Contact Notification -->
+            <div class="emergency-step">
+                <svg viewBox="0 0 36 36" fill="#e65100"><path d="M30 4H6C3.8 4 2 5.8 2 8v20c0 2.2 1.8 4 4 4h24c2.2 0 4-1.8 4-4V8c0-2.2-1.8-4-4-4zm0 8L18 20 6 12V8l12 8 12-8v4z"/></svg>
+                <span class="step-text">Emergency Contact Notification</span>
+            </div>
+            <div class="emergency-arrow"><svg viewBox="0 0 24 16"><path d="M2 8h16M18 8l-5-5M18 8l-5 5" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <!-- Registered Emergency Contacts -->
+            <div class="emergency-step">
+                <svg viewBox="0 0 36 36" fill="#e65100"><path d="M24 18c2.2 0 3.98-1.8 3.98-4S26.2 10 24 10s-4 1.8-4 4 1.8 4 4 4zm-12 0c2.2 0 3.98-1.8 3.98-4S14.2 10 12 10s-4 1.8-4 4 1.8 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm12 0c-.33 0-.7.02-1.1.06 1.32.96 2.1 2.24 2.1 3.94v2h6v-2c0-2.66-4-4-7-4z"/></svg>
+                <span class="step-text">Registered Emergency Contacts</span>
+            </div>
+            <div class="emergency-arrow"><svg viewBox="0 0 24 16"><path d="M2 8h16M18 8l-5-5M18 8l-5 5" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <!-- Nearby Hospital -->
+            <div class="emergency-step">
+                <svg viewBox="0 0 36 36" fill="#e65100"><path d="M30 6H6C3.8 6 2 7.8 2 10v16c0 2.2 1.8 4 4 4h24c2.2 0 4-1.8 4-4V10c0-2.2-1.8-4-4-4zm-8 16h-4v4h-2v-4h-4v-2h4v-4h2v4h4v2z"/></svg>
+                <span class="step-text">Nearby Hospital</span>
+            </div>
+            <div class="emergency-arrow"><svg viewBox="0 0 24 16"><path d="M2 8h16M18 8l-5-5M18 8l-5 5" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <!-- Ambulance Dispatch -->
+            <div class="emergency-step">
+                <svg viewBox="0 0 36 36" fill="#e65100"><path d="M30 14h-4V8H4c-2.2 0-4 1.8-4 4v14h4c0 2.76 2.24 5 5 5s5-2.24 5-5h8c0 2.76 2.24 5 5 5s5-2.24 5-5h4v-8l-6-8zM9 29c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm18 0c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm-1-12h-4v-4h4v4z"/><path d="M14 10h-2v3H9v2h3v3h2v-3h3v-2h-3z"/></svg>
+                <span class="step-text">Ambulance Dispatch</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bidirectional Arrow -->
+    <div class="bi-arrow">
+        <svg viewBox="0 0 30 50" fill="#333">
+            <path d="M15 0L8 10h14L15 0z"/>
+            <rect x="13" y="10" width="4" height="30" rx="1"/>
+            <path d="M15 50L22 40H8L15 50z"/>
+        </svg>
+    </div>
+
+    <!-- ═══════════ LAYER 5: HEALTH DATA REPOSITORY ═══════════ -->
+    <div class="layer layer-5">
+        <div class="layer-header">5. Health Data Repository</div>
+        <div class="modules-grid">
+            <!-- User Information -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#37474f"><path d="M24 24c4.4 0 8-3.6 8-8s-3.6-8-8-8-8 3.6-8 8 3.6 8 8 8zm0 4c-5.3 0-16 2.7-16 8v4h32v-4c0-5.3-10.7-8-16-8z"/></svg>
+                <span class="module-text">User Information</span>
+            </div>
+            <!-- Medical Records -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#37474f"><path d="M14 4C11.8 4 10 5.8 10 8v32c0 2.2 1.8 4 4 4h20c2.2 0 4-1.8 4-4V16L26 4H14zm12 14V7l11 11H26zm-8 6h12v3H18v-3zm0 6h12v3H18v-3z"/></svg>
+                <span class="module-text">Medical Records</span>
+            </div>
+            <!-- Disease Prediction Records -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#37474f"><path d="M6 6v36h36V6H6zm8 28v-14l6 6 6-10 6 10V34z"/></svg>
+                <span class="module-text">Disease Prediction Records</span>
+            </div>
+            <!-- Accident Logs -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#37474f"><path d="M38 4H10C7.8 4 6 5.8 6 8v32c0 2.2 1.8 4 4 4h28c2.2 0 4-1.8 4-4V8c0-2.2-1.8-4-4-4zm-6 28H16v-4h16v4zm0-8H16v-4h16v4zm0-8H16v-4h16v4z"/></svg>
+                <span class="module-text">Accident Logs</span>
+            </div>
+            <!-- Emergency Contact Information -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#37474f"><path d="M14 4h20v4H14zm20 6H14c-2.2 0-4 1.8-4 4v24c0 2.2 1.8 4 4 4h20c2.2 0 4-1.8 4-4V14c0-2.2-1.8-4-4-4zm-6 24h-8v-3h8v3zm4-6H16v-3h16v3zm0-6H16v-3h16v3z"/></svg>
+                <span class="module-text">Emergency Contact Information</span>
+            </div>
+            <!-- Health Reports -->
+            <div class="module-card">
+                <svg viewBox="0 0 48 48" fill="#37474f"><path d="M8 4C5.8 4 4 5.8 4 8v32c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4V8c0-2.2-1.8-4-4-4H8zm2 6h28v4H10v-4zm0 8h20v3H10v-3zm0 6h28v3H10v-3zm0 6h20v3H10v-3z"/></svg>
+                <span class="module-text">Health Reports</span>
+            </div>
+        </div>
+        <!-- Database Icon at bottom center -->
+        <div style="display:flex; justify-content:center; margin-top:16px;">
+            <svg width="50" height="40" viewBox="0 0 50 40" fill="rgba(255,255,255,0.7)">
+                <ellipse cx="25" cy="8" rx="22" ry="8"/>
+                <path d="M3 8v24c0 4.4 9.85 8 22 8s22-3.6 22-8V8" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+                <path d="M3 16c0 4.4 9.85 8 22 8s22-3.6 22-8" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+                <path d="M3 24c0 4.4 9.85 8 22 8s22-3.6 22-8" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ═══════════ CAPTION ═══════════ -->
+    <div class="caption">
+        Fig. 1. Proposed architecture of SWASTHYA platform
+    </div>
+
+</div>
+
+</body>
+</html>

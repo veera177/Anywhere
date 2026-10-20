@@ -1,6 +1,10 @@
 package com.app.start_app.cart;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.app.start_app.security.CurrentUser;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -17,7 +21,8 @@ public class CartController {
 
     // Add item to cart
     @PostMapping("/add")
-    public String addToCart(@RequestBody Cart cart) {
+    public String addToCart(@RequestBody Cart cart, @AuthenticationPrincipal Integer userId) {
+        cart.setUserId(CurrentUser.require(userId));
 
         String result = cartService.addToCart(cart);
 
@@ -37,7 +42,8 @@ public class CartController {
     // Get cart items by user
     // Get cart items by user
     @GetMapping("/{userId}")
-    public List<CartItem> getCart(@PathVariable Integer userId) {
+    public List<CartItem> getCart(@PathVariable Integer userId, @AuthenticationPrincipal Integer authenticatedUserId) {
+        CurrentUser.owns(authenticatedUserId, userId);
 
         return cartService.getCart(userId);
 
@@ -47,7 +53,8 @@ public class CartController {
     @PutMapping("/update")
     public String updateQuantity(
             @RequestParam Integer cartId,
-            @RequestParam Integer quantity) {
+            @RequestParam Integer quantity, @AuthenticationPrincipal Integer userId) {
+        requireCartOwner(cartId, userId);
 
         int result = cartService.updateQuantity(cartId, quantity);
 
@@ -60,7 +67,8 @@ public class CartController {
 
     // Remove one item
     @DeleteMapping("/remove/{cartId}")
-    public String removeItem(@PathVariable Integer cartId) {
+    public String removeItem(@PathVariable Integer cartId, @AuthenticationPrincipal Integer userId) {
+        requireCartOwner(cartId, userId);
 
         int result = cartService.removeItem(cartId);
 
@@ -73,7 +81,8 @@ public class CartController {
 
     // Clear entire cart
     @DeleteMapping("/clear/{userId}")
-    public String clearCart(@PathVariable Integer userId) {
+    public String clearCart(@PathVariable Integer userId, @AuthenticationPrincipal Integer authenticatedUserId) {
+        CurrentUser.owns(authenticatedUserId, userId);
 
         int result = cartService.clearCart(userId);
 
@@ -82,5 +91,11 @@ public class CartController {
         }
 
         return "Cart Already Empty";
+    }
+
+    private void requireCartOwner(Integer cartId, Integer userId) {
+        Integer owner = cartService.getOwner(cartId);
+        if (owner == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cart item not found");
+        CurrentUser.owns(userId, owner);
     }
 }

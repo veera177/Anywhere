@@ -25,6 +25,8 @@ public class CartService {
         return cartDAO.updateQuantity(cartId, quantity);
     }
 
+    public Integer getOwner(Integer cartId) { return cartDAO.findOwner(cartId); }
+
     public int removeItem(Integer cartId) {
         return cartDAO.removeItem(cartId);
     }

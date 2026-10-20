@@ -9,11 +9,20 @@ public class Address {
     private String city;
     private String district;
     private String pincode;
+    private Double latitude;
+    private Double longitude;
+    private String addressType;
+    private Boolean isDefault;
 
     public Address() {
     }
 
     public Address(Integer id, Integer userId, String title, String address, String city, String district, String pincode) {
+        this(id, userId, title, address, city, district, pincode, null, null, "HOME", false);
+    }
+
+    public Address(Integer id, Integer userId, String title, String address, String city, String district,
+                   String pincode, Double latitude, Double longitude, String addressType, Boolean isDefault) {
         this.id = id;
         this.userId = userId;
         this.title = title;
@@ -21,6 +30,10 @@ public class Address {
         this.city = city;
         this.district = district;
         this.pincode = pincode;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.addressType = addressType;
+        this.isDefault = isDefault;
     }
 
     public Integer getId() {
@@ -77,5 +90,37 @@ public class Address {
 
     public void setPincode(String pincode) {
         this.pincode = pincode;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getAddressType() {
+        return addressType;
+    }
+
+    public void setAddressType(String addressType) {
+        this.addressType = addressType;
+    }
+
+    public Boolean getIsDefault() {
+        return isDefault;
+    }
+
+    public void setIsDefault(Boolean isDefault) {
+        this.isDefault = isDefault;
     }
 }

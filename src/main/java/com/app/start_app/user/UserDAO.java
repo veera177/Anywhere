@@ -1,5 +1,6 @@
 package com.app.start_app.user;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -17,16 +18,36 @@ public class UserDAO {
 
         String sql = """
                 INSERT INTO users
-                (full_name, email, phone, password)
-                VALUES (?, ?, ?, ?)
+                (full_name, email, phone, password, district, town)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """;
 
+        String district = user.getDistrict();
+        String town = user.getTown();
+        Object districtObj = district != null && !district.isEmpty() ? district : null;
+        Object townObj = town != null && !town.isEmpty() ? town : null;
+        if (districtObj == null && townObj == null) {
+            sql = """
+                    INSERT INTO users
+                    (full_name, email, phone, password)
+                    VALUES (?, ?, ?, ?)
+                    """;
+            return jdbcTemplate.update(
+                    sql,
+                    user.getFullName(),
+                    user.getEmail(),
+                    user.getPhone(),
+                    user.getPassword()
+            );
+        }
         return jdbcTemplate.update(
                 sql,
                 user.getFullName(),
                 user.getEmail(),
                 user.getPhone(),
-                user.getPassword()
+                user.getPassword(),
+                districtObj,
+                townObj
         );
     }
 
@@ -66,7 +87,7 @@ public class UserDAO {
                     password
             );
 
-        } catch (Exception e) {
+        } catch (EmptyResultDataAccessException e) {
             return null;
         }
     }
@@ -105,7 +126,7 @@ public class UserDAO {
                     id
             );
 
-        } catch (Exception e) {
+        } catch (EmptyResultDataAccessException e) {
             return null;
         }
     }

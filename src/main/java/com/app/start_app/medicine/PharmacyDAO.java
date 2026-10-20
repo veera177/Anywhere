@@ -26,14 +26,20 @@ public class PharmacyDAO {
 
         return jdbcTemplate.query(
                 sql,
-                (rs, rowNum) -> new Pharmacy(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("district"),
-                        rs.getDouble("rating"),
-                        rs.getString("location"),
-                        rs.getString("delivery_type")
-                ),
+                (rs, rowNum) -> {
+                    Pharmacy p = new Pharmacy(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getString("district"),
+                            rs.getDouble("rating"),
+                            rs.getString("location"),
+                            rs.getString("delivery_type")
+                    );
+                    try { p.setRatingCount(rs.getInt("rating_count")); } catch (Exception ignored) {}
+                    p.setLatitude(rs.getObject("latitude", Double.class));
+                    p.setLongitude(rs.getObject("longitude", Double.class));
+                    return p;
+                },
                 district,
                 district
         );

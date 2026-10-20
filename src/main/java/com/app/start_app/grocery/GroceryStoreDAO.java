@@ -20,20 +20,26 @@ public class GroceryStoreDAO {
         String sql = """
                 SELECT *
                 FROM grocery_stores
-                WHERE (? IS NULL OR district = ?)
+                WHERE (? IS NULL OR LOWER(district) = LOWER(?))
                 ORDER BY rating DESC
                 """;
 
         return jdbcTemplate.query(
                 sql,
-                (rs, rowNum) -> new GroceryStore(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("district"),
-                        rs.getDouble("rating"),
-                        rs.getString("location"),
-                        rs.getString("delivery_type")
-                ),
+                (rs, rowNum) -> {
+                    GroceryStore store = new GroceryStore(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getString("district"),
+                            rs.getDouble("rating"),
+                            rs.getString("location"),
+                            rs.getString("delivery_type")
+                    );
+                    try { store.setRatingCount(rs.getInt("rating_count")); } catch (Exception ignored) {}
+                    store.setLatitude(rs.getObject("latitude", Double.class));
+                    store.setLongitude(rs.getObject("longitude", Double.class));
+                    return store;
+                },
                 district,
                 district
         );

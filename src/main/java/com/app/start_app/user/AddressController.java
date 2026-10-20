@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.app.start_app.security.CurrentUser;
 
 import java.util.List;
 
@@ -26,16 +28,29 @@ public class AddressController {
     }
 
     @GetMapping("/{userId}/addresses")
-    public List<Address> getAddresses(@PathVariable Integer userId) {
+    public List<Address> getAddresses(@PathVariable Integer userId, @AuthenticationPrincipal Integer authenticatedUserId) {
+        CurrentUser.owns(authenticatedUserId, userId);
         return addressDAO.getAddressesByUserId(userId);
     }
 
     @GetMapping("/{userId}/addresses/{addressId}")
     public ResponseEntity<Address> getAddress(
             @PathVariable Integer userId,
-            @PathVariable Integer addressId
+            @PathVariable Integer addressId, @AuthenticationPrincipal Integer authenticatedUserId
     ) {
-        Address address = addressDAO.getAddressById(userId, addressId);
+        CurrentUser.owns(authenticatedUserId, userId); Address address = addressDAO.getAddressById(userId, addressId);
+
+        if (address == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(address);
+    }
+
+    @GetMapping("/{userId}/addresses/default")
+    public ResponseEntity<Address> getDefaultAddress(@PathVariable Integer userId, @AuthenticationPrincipal Integer authenticatedUserId) {
+        CurrentUser.owns(authenticatedUserId, userId);
+        Address address = addressDAO.getDefaultAddress(userId);
 
         if (address == null) {
             return ResponseEntity.notFound().build();
@@ -47,9 +62,9 @@ public class AddressController {
     @PostMapping("/{userId}/addresses")
     public ResponseEntity<String> addAddress(
             @PathVariable Integer userId,
-            @RequestBody Address address
+            @RequestBody Address address, @AuthenticationPrincipal Integer authenticatedUserId
     ) {
-        int result = addressDAO.addAddress(userId, address);
+        CurrentUser.owns(authenticatedUserId, userId); int result = addressDAO.addAddress(userId, address);
 
         if (result > 0) {
             return ResponseEntity.status(HttpStatus.CREATED).body("Address added successfully");
@@ -62,9 +77,9 @@ public class AddressController {
     public ResponseEntity<String> updateAddress(
             @PathVariable Integer userId,
             @PathVariable Integer addressId,
-            @RequestBody Address address
+            @RequestBody Address address, @AuthenticationPrincipal Integer authenticatedUserId
     ) {
-        int result = addressDAO.updateAddress(userId, addressId, address);
+        CurrentUser.owns(authenticatedUserId, userId); int result = addressDAO.updateAddress(userId, addressId, address);
 
         if (result == 0) {
             return ResponseEntity.notFound().build();
@@ -76,9 +91,9 @@ public class AddressController {
     @DeleteMapping("/{userId}/addresses/{addressId}")
     public ResponseEntity<String> deleteAddress(
             @PathVariable Integer userId,
-            @PathVariable Integer addressId
+            @PathVariable Integer addressId, @AuthenticationPrincipal Integer authenticatedUserId
     ) {
-        int result = addressDAO.deleteAddress(userId, addressId);
+        CurrentUser.owns(authenticatedUserId, userId); int result = addressDAO.deleteAddress(userId, addressId);
 
         if (result == 0) {
             return ResponseEntity.notFound().build();
@@ -90,14 +105,28 @@ public class AddressController {
     @PostMapping("/{userId}/addresses/{addressId}/select")
     public ResponseEntity<Address> selectAddressForCheckout(
             @PathVariable Integer userId,
-            @PathVariable Integer addressId
+            @PathVariable Integer addressId, @AuthenticationPrincipal Integer authenticatedUserId
     ) {
-        Address address = addressDAO.getAddressById(userId, addressId);
+        CurrentUser.owns(authenticatedUserId, userId); Address address = addressDAO.getAddressById(userId, addressId);
 
         if (address == null) {
             return ResponseEntity.notFound().build();
         }
 
         return ResponseEntity.ok(address);
+    }
+
+    @PutMapping("/{userId}/addresses/{addressId}/set-default")
+    public ResponseEntity<String> setDefaultAddress(
+            @PathVariable Integer userId,
+            @PathVariable Integer addressId, @AuthenticationPrincipal Integer authenticatedUserId
+    ) {
+        CurrentUser.owns(authenticatedUserId, userId); int result = addressDAO.setDefaultAddress(userId, addressId);
+
+        if (result == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok("Default address updated");
     }
 }

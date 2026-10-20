@@ -13,7 +13,19 @@ CREATE TABLE restaurants (
 
     location VARCHAR(200),
 
-    delivery_type VARCHAR(50)
+    delivery_type VARCHAR(50),
+    
+    latitude DOUBLE,
+    
+    longitude DOUBLE,
+    
+    taluk VARCHAR(100),
+    
+    pincode VARCHAR(20),
+    
+    is_verified BOOLEAN DEFAULT TRUE,
+    
+    is_active BOOLEAN DEFAULT TRUE
 );
 CREATE TABLE food_products (
     id INT PRIMARY KEY AUTO_INCREMENT,

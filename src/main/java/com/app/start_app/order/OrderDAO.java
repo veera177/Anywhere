@@ -1,5 +1,6 @@
 package com.app.start_app.order;
 
+import com.app.start_app.delivery.DeliveryFeeBreakdown;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -48,13 +49,20 @@ public class OrderDAO {
         return addresses.isEmpty() ? null : addresses.get(0);
     }
 
-    public Integer insertOrder(CreateOrderRequest request, String deliveryAddress, BigDecimal total) {
+    public Integer insertOrder(CreateOrderRequest request, String deliveryAddress, BigDecimal productTotal, DeliveryFeeBreakdown deliveryFee) {
         LocalDateTime estimatedDelivery = LocalDateTime.now().plusMinutes(45);
+        // Courier adds the additive Anywhere platform fee on top of the delivery fee;
+        // other services keep platform fee at zero so their totals are unchanged.
+        BigDecimal platformFee = deliveryFee.getPlatformFee() != null
+                ? deliveryFee.getPlatformFee()
+                : BigDecimal.ZERO;
+        BigDecimal total = productTotal.add(deliveryFee.getFinalDeliveryFee()).add(platformFee);
         String sql = """
                 INSERT INTO orders
                 (user_id, address_id, delivery_address, payment_method, total_amount, status,
-                 tracking_status, estimated_delivery_time)
-                VALUES (?, ?, ?, ?, ?, 'ORDER_PLACED', 'ORDER_PLACED', ?)
+                 tracking_status, estimated_delivery_time, product_total, distance_km,
+                 delivery_fee_original, delivery_discount, final_delivery_fee, delivery_eta_label)
+                VALUES (?, ?, ?, ?, ?, 'ORDER_PLACED', 'ORDER_PLACED', ?, ?, ?, ?, ?, ?, ?)
                 """;
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -70,6 +78,12 @@ public class OrderDAO {
             statement.setString(4, request.getPaymentMethod());
             statement.setBigDecimal(5, total);
             statement.setTimestamp(6, Timestamp.valueOf(estimatedDelivery));
+            statement.setBigDecimal(7, productTotal);
+            statement.setBigDecimal(8, deliveryFee.getDistanceKm());
+            statement.setBigDecimal(9, deliveryFee.getOriginalDeliveryFee());
+            statement.setBigDecimal(10, deliveryFee.getDeliveryDiscount());
+            statement.setBigDecimal(11, deliveryFee.getFinalDeliveryFee());
+            statement.setString(12, deliveryFee.getEstimatedDeliveryTime());
             return statement;
         }, keyHolder);
 
@@ -164,6 +178,50 @@ public class OrderDAO {
         }, orderId);
     }
 
+    /**
+     * Re-add all items from a previous order into the user's cart.
+     * Skips items that are no longer available/in stock.
+     */
+    public ReorderResult reorderItems(Integer orderId, Integer userId) {
+        List<OrderItem> items = findItems(orderId);
+        java.util.List<String> added = new java.util.ArrayList<>();
+        java.util.List<String> unavailable = new java.util.ArrayList<>();
+
+        for (OrderItem item : items) {
+            if ("COURIER".equalsIgnoreCase(item.getServiceType())) continue;
+            boolean inStock = checkStock(item.getProductId(), item.getServiceType());
+            if (!inStock) {
+                unavailable.add(item.getProductName());
+                continue;
+            }
+            // Upsert into cart
+            String upsertSql = """
+                    INSERT INTO cart (user_id, service_type, product_id, quantity, added_at)
+                    VALUES (?, ?, ?, ?, NOW())
+                    ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity), added_at = NOW()
+                    """;
+            jdbcTemplate.update(upsertSql, userId, item.getServiceType(), item.getProductId(), item.getQuantity());
+            added.add(item.getProductName());
+        }
+        return new ReorderResult(added, unavailable);
+    }
+
+    private boolean checkStock(Integer productId, String serviceType) {
+        try {
+            String table = switch (serviceType.toUpperCase()) {
+                case "GROCERY" -> "grocery_products";
+                case "MEDICINE" -> "medicine_products";
+                default -> "food_products";
+            };
+            Integer stock = jdbcTemplate.queryForObject(
+                    "SELECT stock FROM " + table + " WHERE id = ? AND available = TRUE",
+                    Integer.class, productId);
+            return stock != null && stock > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private Order mapOrder(java.sql.ResultSet rs, int rowNum) throws java.sql.SQLException {
         Order order = new Order();
         order.setId(rs.getInt("id"));
@@ -172,6 +230,12 @@ public class OrderDAO {
         order.setDeliveryAddress(rs.getString("delivery_address"));
         order.setPaymentMethod(rs.getString("payment_method"));
         order.setTotalAmount(rs.getBigDecimal("total_amount"));
+        order.setProductTotal(readBigDecimal(rs, "product_total"));
+        order.setDistanceKm(readBigDecimal(rs, "distance_km"));
+        order.setDeliveryFeeOriginal(readBigDecimal(rs, "delivery_fee_original"));
+        order.setDeliveryDiscount(readBigDecimal(rs, "delivery_discount"));
+        order.setFinalDeliveryFee(readBigDecimal(rs, "final_delivery_fee"));
+        order.setDeliveryEtaLabel(readString(rs, "delivery_eta_label"));
         order.setStatus(rs.getString("status"));
         order.setTrackingStatus(rs.getString("tracking_status"));
         Timestamp eta = rs.getTimestamp("estimated_delivery_time");
@@ -180,5 +244,21 @@ public class OrderDAO {
         }
         order.setOrderedAt(rs.getTimestamp("ordered_at").toLocalDateTime());
         return order;
+    }
+
+    private BigDecimal readBigDecimal(java.sql.ResultSet rs, String column) {
+        try {
+            return rs.getBigDecimal(column);
+        } catch (java.sql.SQLException exception) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    private String readString(java.sql.ResultSet rs, String column) {
+        try {
+            return rs.getString(column);
+        } catch (java.sql.SQLException exception) {
+            return null;
+        }
     }
 }

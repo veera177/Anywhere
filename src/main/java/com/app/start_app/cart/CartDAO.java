@@ -81,40 +81,64 @@ public class CartDAO {
         return "ITEM_ADDED";
     }
 
-    // Get all cart items of a user
+    // Get all cart items of a user — joins correct product tables per service type
     public List<CartItem> getCartByUser(Integer userId) {
 
+        // Use UNION to cleanly join the right product + provider table per service.
+        // This avoids referencing non-existent columns in the cart table.
         String sql = """
-            SELECT
-                c.id,
-                c.product_id,
-                c.service_type,
-                c.quantity,
+            SELECT id, product_id, service_type, quantity,
+                   name, price, rating, image_url, restaurant_name,
+                   schedule_type, requires_prescription
+            FROM (
+                SELECT c.id, c.product_id, c.service_type, c.quantity,
+                       f.name, f.price, f.rating, f.image_url,
+                       r.name AS restaurant_name,
+                       NULL AS schedule_type,
+                       FALSE AS requires_prescription
+                FROM cart c
+                JOIN food_products f ON c.product_id = f.id
+                LEFT JOIN restaurants r ON f.restaurant_id = r.id
+                WHERE c.user_id = ? AND c.service_type = 'FOOD'
 
-                COALESCE(f.name, gp.name, mp.name, c.product_name) AS name,
-                COALESCE(f.price, gp.price, mp.price, c.price) AS price,
-                COALESCE(f.rating, gp.rating, mp.rating, c.rating, 0) AS rating,
-                COALESCE(f.image_url, gp.image_url, mp.image_url, c.image_url) AS image_url,
-                COALESCE(r.name, gs.name, p.name, c.provider_name, 'Anywhere Courier') AS restaurant_name
+                UNION ALL
 
-            FROM cart c
+                SELECT c.id, c.product_id, c.service_type, c.quantity,
+                       gp.name, gp.price, gp.rating, gp.image_url,
+                       gs.name AS restaurant_name,
+                       NULL AS schedule_type,
+                       FALSE AS requires_prescription
+                FROM cart c
+                JOIN grocery_products gp ON c.product_id = gp.id
+                LEFT JOIN grocery_stores gs ON gp.store_id = gs.id
+                WHERE c.user_id = ? AND c.service_type = 'GROCERY'
 
-            LEFT JOIN food_products f
-                ON c.service_type = 'FOOD' AND c.product_id = f.id
-            LEFT JOIN restaurants r
-                ON f.restaurant_id = r.id
-            LEFT JOIN grocery_products gp
-                ON c.service_type = 'GROCERY' AND c.product_id = gp.id
-            LEFT JOIN grocery_stores gs
-                ON gp.store_id = gs.id
-            LEFT JOIN medicine_products mp
-                ON c.service_type = 'MEDICINE' AND c.product_id = mp.id
-            LEFT JOIN pharmacies p
-                ON mp.pharmacy_id = p.id
+                UNION ALL
 
-            WHERE c.user_id = ?
+                SELECT c.id, c.product_id, c.service_type, c.quantity,
+                       mp.name, mp.price, mp.rating, mp.image_url,
+                       p.name AS restaurant_name,
+                       mp.schedule_type,
+                       COALESCE(mp.requires_prescription, FALSE) AS requires_prescription
+                FROM cart c
+                JOIN medicine_products mp ON c.product_id = mp.id
+                LEFT JOIN pharmacies p ON mp.pharmacy_id = p.id
+                WHERE c.user_id = ? AND c.service_type = 'MEDICINE'
 
-            ORDER BY c.added_at DESC
+                UNION ALL
+
+                SELECT c.id, c.product_id, c.service_type, c.quantity,
+                       COALESCE(NULL, 'Courier Item') AS name,
+                       0.0 AS price,
+                       0.0 AS rating,
+                       NULL AS image_url,
+                       'Anywhere Courier' AS restaurant_name,
+                       NULL AS schedule_type,
+                       FALSE AS requires_prescription
+                FROM cart c
+                WHERE c.user_id = ? AND c.service_type = 'COURIER'
+            ) combined
+            ORDER BY id DESC
             """;
 
         return jdbcTemplate.query(
@@ -134,11 +158,13 @@ public class CartDAO {
 
                     item.setPrice(rs.getDouble("price"));
                     item.setRating(rs.getDouble("rating"));
+                    item.setScheduleType(rs.getString("schedule_type"));
+                    item.setRequiresPrescription(rs.getBoolean("requires_prescription"));
 
                     return item;
 
                 },
-                userId
+                userId, userId, userId, userId
         );
     }
     
@@ -152,6 +178,11 @@ public class CartDAO {
                 """;
 
         return jdbcTemplate.update(sql, quantity, cartId);
+    }
+
+    public Integer findOwner(Integer cartId) {
+        List<Integer> owners = jdbcTemplate.queryForList("SELECT user_id FROM cart WHERE id = ?", Integer.class, cartId);
+        return owners.isEmpty() ? null : owners.get(0);
     }
 
     // Remove one item
@@ -181,7 +212,6 @@ public class CartDAO {
                 DELETE FROM cart
                 WHERE user_id = ? AND service_type = ?
                 """;
-
         return jdbcTemplate.update(sql, userId, serviceType);
     }
 }

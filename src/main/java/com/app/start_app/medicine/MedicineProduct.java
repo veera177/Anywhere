@@ -16,6 +16,8 @@ public class MedicineProduct {
     private boolean available;
     private String pharmacyName;
     private Integer pharmacyId;
+    private String scheduleType;
+    private boolean requiresPrescription;
 
     public MedicineProduct() {
     }
@@ -34,7 +36,9 @@ public class MedicineProduct {
             String imageUrl,
             boolean available,
             String pharmacyName,
-            Integer pharmacyId
+            Integer pharmacyId,
+            String scheduleType,
+            boolean requiresPrescription
     ) {
         this.id = id;
         this.district = district;
@@ -50,6 +54,8 @@ public class MedicineProduct {
         this.available = available;
         this.pharmacyName = pharmacyName;
         this.pharmacyId = pharmacyId;
+        this.scheduleType = scheduleType;
+        this.requiresPrescription = requiresPrescription;
     }
 
     public int getId() {
@@ -163,4 +169,9 @@ public class MedicineProduct {
     public void setPharmacyId(Integer pharmacyId) {
         this.pharmacyId = pharmacyId;
     }
+
+    public String getScheduleType() { return scheduleType; }
+    public void setScheduleType(String scheduleType) { this.scheduleType = scheduleType; }
+    public boolean isRequiresPrescription() { return requiresPrescription; }
+    public void setRequiresPrescription(boolean requiresPrescription) { this.requiresPrescription = requiresPrescription; }
 }

@@ -1,11 +1,18 @@
 package com.app.start_app.order;
 
+import com.app.start_app.delivery.DeliveryFeeBreakdown;
+import com.app.start_app.delivery.DeliveryFeeCalculator;
+import com.app.start_app.prescription.PrescriptionService;
+import com.app.start_app.settlement.SettlementService;
+import com.app.start_app.user.Address;
+import com.app.start_app.user.AddressDAO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Service
 public class OrderService {
@@ -25,14 +32,40 @@ public class OrderService {
     );
 
     private final OrderDAO orderDAO;
+    private final DeliveryFeeCalculator deliveryFeeCalculator;
+    private final SettlementService settlementService;
+    private final AddressDAO addressDAO;
+    private final PrescriptionService prescriptionService;
+    private final OrderStatusPublisher orderStatusPublisher;
 
-    public OrderService(OrderDAO orderDAO) {
+    public OrderService(OrderDAO orderDAO, DeliveryFeeCalculator deliveryFeeCalculator,
+                        SettlementService settlementService, AddressDAO addressDAO,
+                        PrescriptionService prescriptionService, OrderStatusPublisher orderStatusPublisher) {
         this.orderDAO = orderDAO;
+        this.deliveryFeeCalculator = deliveryFeeCalculator;
+        this.settlementService = settlementService;
+        this.addressDAO = addressDAO;
+        this.prescriptionService = prescriptionService;
+        this.orderStatusPublisher = orderStatusPublisher;
     }
 
     @Transactional
     public Order createOrder(CreateOrderRequest request) {
         validateRequest(request);
+        // Emergency priority changes routing/SLA only. It never bypasses medicine
+        // prescription verification.
+        prescriptionService.validateMedicineOrder(request.getUserId(), request.getItems());
+
+        // Only trust an address id that actually belongs to this user. A client can
+        // otherwise send the user's own id (the profile object carries it), which
+        // violates the orders->addresses foreign key and turns into a 500.
+        if (request.getAddressId() != null) {
+            Address owned = addressDAO.getAddressById(request.getUserId(), request.getAddressId());
+            if (owned == null) {
+                request.setAddressId(null);
+            }
+        }
+
         String address = request.getDeliveryAddress();
         if (address == null || address.isBlank()) {
             address = request.getAddressId() == null
@@ -43,13 +76,35 @@ public class OrderService {
             throw new IllegalArgumentException("Please add a delivery address in your profile");
         }
 
-        BigDecimal total = request.getItems().stream()
+        BigDecimal productTotal = request.getItems().stream()
                 .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        Integer orderId = orderDAO.insertOrder(request, address, total);
-        request.getItems().forEach(item -> orderDAO.insertItem(orderId, item));
         String orderedService = request.getItems().get(0).getServiceType();
+        // Courier sends an explicit district so the correct tiered fee applies even
+        // though its delivery address is a joined "FROM | TO | RECEIVER" string.
+        String district = request.getDistrict() != null && !request.getDistrict().isBlank()
+                ? request.getDistrict()
+                : extractDistrictFromAddress(address);
+
+        // For courier bookings the single item's price IS the distance-based delivery
+        // fee (there is no product). Count it only once: in final_delivery_fee.
+        if ("COURIER".equalsIgnoreCase(orderedService)) {
+            productTotal = BigDecimal.ZERO;
+        }
+        
+        DeliveryFeeBreakdown deliveryFee = deliveryFeeCalculator.calculateDeliveryFee(
+                orderedService,
+                request.getDistanceKm(),
+                productTotal,
+                false,
+                district,
+                request.isEmergencyPriority()
+        );
+
+        Integer orderId = orderDAO.insertOrder(request, address, productTotal, deliveryFee);
+        request.getItems().forEach(item -> orderDAO.insertItem(orderId, item));
+        prescriptionService.linkVerifiedPrescription(request.getUserId(), orderId, request.getItems());
         if (!"COURIER".equalsIgnoreCase(orderedService)) {
             orderDAO.clearCartService(request.getUserId(), orderedService);
         }
@@ -64,6 +119,10 @@ public class OrderService {
         return orderDAO.findById(orderId);
     }
 
+    public SseEmitter subscribe(Integer orderId) {
+        return orderStatusPublisher.subscribe(orderId);
+    }
+
     public OrderTrackingResponse getTracking(Integer orderId) {
         OrderTrackingResponse tracking = orderDAO.findTrackingById(orderId);
         if (tracking == null) {
@@ -75,6 +134,7 @@ public class OrderService {
         return tracking;
     }
 
+    @Transactional
     public String updateTrackingStatus(Integer orderId, String status) {
         String normalized = normalizeStatus(status);
         if (!TRACKING_STATUSES.contains(normalized)) {
@@ -96,6 +156,15 @@ public class OrderService {
             throw new IllegalArgumentException("Order not found");
         }
 
+        // Every status writer goes through this method, so publish exactly once.
+        orderStatusPublisher.publish(orderId, getTracking(orderId));
+
+        if ("DELIVERED".equals(normalized)) {
+            Order order = orderDAO.findById(orderId);
+            String district = extractDistrictFromAddress(order.getDeliveryAddress());
+            settlementService.calculateAndSaveSettlement(order, district);
+        }
+
         return normalized;
     }
 
@@ -104,8 +173,34 @@ public class OrderService {
         return true;
     }
 
+    /**
+     * Reorder: re-add all items from a previous order back into the user's cart.
+     * Returns lists of added and unavailable items.
+     */
+    public ReorderResult reorder(Integer orderId, Integer userId) {
+        Order order = orderDAO.findById(orderId);
+        if (order == null || !order.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("Order not found");
+        }
+        return orderDAO.reorderItems(orderId, userId);
+    }
+
     private String normalizeStatus(String status) {
         return status == null ? "" : status.trim().toUpperCase();
+    }
+
+    private String extractDistrictFromAddress(String addressStr) {
+        if (addressStr == null) return "Unknown";
+        String[] parts = addressStr.split(",");
+        if (parts.length >= 2) {
+            // Address snapshot formats:
+            // "title: address, city, district - pincode" OR "address_line, Near landmark, town, district"
+            String possibleDistrict = parts[parts.length - 1].split("-")[0].trim();
+            if (!possibleDistrict.isEmpty()) {
+                return possibleDistrict;
+            }
+        }
+        return "Unknown";
     }
 
     private void validateRequest(CreateOrderRequest request) {

@@ -14,6 +14,8 @@ public class CartItem {
     private Double rating;
 
     private Integer quantity;
+    private String scheduleType;
+    private boolean requiresPrescription;
 
     public CartItem() {
     }
@@ -89,4 +91,9 @@ public class CartItem {
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
     }
+
+    public String getScheduleType() { return scheduleType; }
+    public void setScheduleType(String scheduleType) { this.scheduleType = scheduleType; }
+    public boolean isRequiresPrescription() { return requiresPrescription; }
+    public void setRequiresPrescription(boolean requiresPrescription) { this.requiresPrescription = requiresPrescription; }
 }

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import "./Orders.css";
+import { API_BASE } from "../../services/apiConfig";
+import { apiFetchJson } from "../../services/apiClient";
 
-const API_URL = "http://localhost:8080/api";
+const API_URL = API_BASE;
 const STEPS = ["ORDER_PLACED", "RESTAURANT_ACCEPTED", "PREPARING", "OUT_FOR_DELIVERY", "DELIVERED"];
 const LEGACY_STATUS = {
     PLACED: "ORDER_PLACED",

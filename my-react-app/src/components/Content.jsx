@@ -1,69 +1,24 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { checkDistrictAvailability } from '../services/districts';
 
-const serviceAreas = [
-    { name: 'Chennai', hub: 'Chennai Central', keywords: ['chennai', 'anna nagar', 't nagar', 'velachery', 'tambaram', '600'] },
-    { name: 'Madurai', hub: 'Madurai Main', keywords: ['madurai', 'kk nagar', '625'] },
-    { name: 'Coimbatore', hub: 'Town Hall', keywords: ['coimbatore', 'kovai', 'gandhipuram', 'rs puram', '641'] },
-    { name: 'Dindigul', hub: 'Dindigul Bus Stand', keywords: ['dindigul', 'palani', 'oddanchatram', '624'] },
-    { name: 'Salem', hub: 'Salem Junction', keywords: ['salem', 'hasthampatti', 'fairlands', '636'] },
-    { name: 'Tiruchirappalli', hub: 'Trichy Central', keywords: ['trichy', 'tiruchirappalli', 'srirangam', '620'] },
-    { name: 'Thanjavur', hub: 'Old Bus Stand', keywords: ['thanjavur', 'tanjore', 'kumbakonam', '613', '612'] },
-    { name: 'Tirunelveli', hub: 'Tirunelveli Junction', keywords: ['tirunelveli', 'nellai', 'palayamkottai', '627'] },
-    { name: 'Erode', hub: 'Erode Bus Stand', keywords: ['erode', 'perundurai', '638'] },
-    { name: 'Vellore', hub: 'Vellore Fort', keywords: ['vellore', 'katpadi', '632'] },
-    { name: 'Theni', hub: 'Theni Main', keywords: ['theni', 'cumbum', 'bodinayakanur', '6255'] },
-    { name: 'Kanyakumari', hub: 'Nagercoil', keywords: ['kanyakumari', 'nagercoil', 'marthandam', '629'] },
-    { name: 'Tiruppur', hub: 'Tiruppur Old Bus Stand', keywords: ['tiruppur', 'avinashi', 'palladam', '6416'] },
-    { name: 'Namakkal', hub: 'Namakkal Bus Stand', keywords: ['namakkal', 'rasipuram', 'tiruchengode', '637'] },
-    { name: 'Karur', hub: 'Karur Main', keywords: ['karur', 'kulithalai', '639'] },
-    { name: 'Sivakasi', hub: 'Sivakasi Town', keywords: ['sivakasi', 'virudhunagar', '626'] },
-    { name: 'Rajapalayam', hub: 'Rajapalayam Main Road', keywords: ['rajapalayam', 'srivilliputhur', 'watrap', '6261'] },
-    { name: 'Thoothukudi', hub: 'Thoothukudi Old Bus Stand', keywords: ['thoothukudi', 'tuticorin', 'kovilpatti', '628'] },
-    { name: 'Tenkasi', hub: 'Tenkasi Main', keywords: ['tenkasi', 'sankarankovil', 'courtrallam', '6278'] },
-    { name: 'Cuddalore', hub: 'Cuddalore Bus Stand', keywords: ['cuddalore', 'panruti', 'chidambaram', '607'] },
-    { name: 'Mayiladuthurai', hub: 'Mayiladuthurai Junction', keywords: ['mayiladuthurai', 'sirkazhi', '609'] },
-    { name: 'Nagapattinam', hub: 'Nagapattinam Main', keywords: ['nagapattinam', 'velankanni', 'thiruvarur', '610', '611'] },
-    { name: 'Karaikudi', hub: 'Karaikudi New Bus Stand', keywords: ['karaikudi', 'sivagangai', 'devakottai', '630'] },
-    { name: 'Ramanathapuram', hub: 'Ramanathapuram Main', keywords: ['ramanathapuram', 'ramnad', 'paramakudi', 'rameswaram', '623'] },
-    { name: 'Pudukkottai', hub: 'Pudukkottai Bus Stand', keywords: ['pudukkottai', 'alangudi', '622'] },
-    { name: 'Ariyalur', hub: 'Ariyalur Main', keywords: ['ariyalur', 'jayankondam', '6217'] },
-    { name: 'Perambalur', hub: 'Perambalur New Bus Stand', keywords: ['perambalur', 'veppanthattai', '6212'] },
-    { name: 'Villupuram', hub: 'Villupuram Junction', keywords: ['villupuram', 'viluppuram', 'gingee', '605'] },
-    { name: 'Kallakurichi', hub: 'Kallakurichi Main', keywords: ['kallakurichi', 'ulundurpet', '606'] },
-    { name: 'Tiruvannamalai', hub: 'Tiruvannamalai Temple Area', keywords: ['tiruvannamalai', 'arni', 'arani', '6066'] },
-    { name: 'Kanchipuram', hub: 'Kanchipuram Bus Stand', keywords: ['kanchipuram', 'sriperumbudur', '631'] },
-    { name: 'Chengalpattu', hub: 'Chengalpattu Junction', keywords: ['chengalpattu', 'mahindra city', '603'] },
-    { name: 'Tiruvallur', hub: 'Tiruvallur Main', keywords: ['tiruvallur', 'avadi', 'ponneri', '602'] },
-    { name: 'Ranipet', hub: 'Ranipet Main', keywords: ['ranipet', 'arcot', 'walajapet', '6324'] },
-    { name: 'Ambur', hub: 'Ambur Bazaar', keywords: ['ambur', 'vaniyambadi', '635'] },
-    { name: 'Hosur', hub: 'Hosur Bus Stand', keywords: ['hosur', 'krishnagiri', '6351'] },
-    { name: 'Dharmapuri', hub: 'Dharmapuri Main', keywords: ['dharmapuri', 'harur', '6367'] },
-    { name: 'Pollachi', hub: 'Pollachi Bus Stand', keywords: ['pollachi', 'anaimalai', '642'] },
-    { name: 'Udumalpet', hub: 'Udumalpet Main', keywords: ['udumalpet', 'udumalaipettai', '6421'] },
-    { name: 'Sathyamangalam', hub: 'Sathyamangalam Bus Stand', keywords: ['sathyamangalam', 'gobichettipalayam', 'gobi', '6384'] },
-    { name: 'Mettur', hub: 'Mettur Main', keywords: ['mettur', 'omalur', '6364'] },
-    { name: 'Ooty', hub: 'Udhagamandalam', keywords: ['ooty', 'udhagamandalam', 'coonoor', '643'] }
-];
-
-function Content() {
+// Districts come from the database (GET /api/districts) so the same Home page
+// works for every district — including ones added later — with no hardcoding.
+function Content({ onExploreDistricts }) {
     const [address, setAddress] = useState('');
     const [status, setStatus] = useState(null); // null, 'checking', 'success', 'error'
     const [checkedAddress, setCheckedAddress] = useState('');
     const [matchedArea, setMatchedArea] = useState(null);
+    const [suggestion, setSuggestion] = useState(null);
 
-    const areaSuggestions = useMemo(() => {
-        const query = address.trim().toLowerCase();
-        if (query.length < 2 || status === 'success') {
-            return [];
-        }
-
-        return serviceAreas.filter((area) => {
-            return (
-                area.name.toLowerCase().includes(query) ||
-                area.hub.toLowerCase().includes(query) ||
-                area.keywords.some((keyword) => keyword.includes(query))
-            );
-        }).slice(0, 5);
+    useEffect(() => {
+        const query = address.trim();
+        if (query.length < 2 || status === 'success') { setSuggestion(null); return undefined; }
+        let cancelled = false;
+        const timer = window.setTimeout(async () => {
+            try { const result = await checkDistrictAvailability(query); if (!cancelled) setSuggestion(result?.district ? result : null); }
+            catch { if (!cancelled) setSuggestion(null); }
+        }, 300);
+        return () => { cancelled = true; window.clearTimeout(timer); };
     }, [address, status]);
 
     const handleExplore = () => {
@@ -83,22 +38,16 @@ function Content() {
         }
 
         setStatus('checking');
-        setTimeout(() => {
-            const normalizedAddress = address.toLowerCase();
-            const availableArea = serviceAreas.find((area) =>
-                area.keywords.some((keyword) => normalizedAddress.includes(keyword))
-            );
-
-            if (availableArea) {
-                setStatus('success');
-                setCheckedAddress(address);
-                setMatchedArea(availableArea);
+        checkDistrictAvailability(address).then((result) => {
+            if (result?.available && result.district) {
+                setStatus('success'); setCheckedAddress(address); setMatchedArea(result);
+                localStorage.setItem('selectedDistrictId', String(result.district.code || result.district.id));
             } else {
                 setStatus('error');
-                setCheckedAddress('We are not active in this area yet. Try a nearby Tamil Nadu district hub from the list below.');
+                setCheckedAddress(result?.nearestAvailableDistrict ? `Not available here yet. Nearest supported district: ${result.nearestAvailableDistrict.name}.` : 'No active service area matched that address.');
                 setMatchedArea(null);
             }
-        }, 800);
+        }).catch(() => { setStatus('error'); setCheckedAddress('Availability check is temporarily unavailable. Please try again.'); setMatchedArea(null); });
     };
 
     return (
@@ -120,6 +69,7 @@ function Content() {
                         <a href="tel:9876543210" className="hero-phone-btn">
                             Call 98765 43210
                         </a>
+                        <button type="button" className="hero-district-btn" onClick={onExploreDistricts}>Explore districts →</button>
                     </div>
 
                     <div className="cta-section">
@@ -157,22 +107,12 @@ function Content() {
                                     }}
                                     autoComplete="off"
                                 />
-                                {areaSuggestions.length > 0 && (
+                                {suggestion?.district && (
                                     <div className="location-suggestions">
-                                        {areaSuggestions.map((area) => (
-                                            <button
-                                                type="button"
-                                                key={area.name}
-                                                onClick={() => {
-                                                    setAddress(area.name);
-                                                    setStatus(null);
-                                                    setMatchedArea(null);
-                                                }}
-                                            >
-                                                <strong>{area.name}</strong>
-                                                <span>{area.hub}</span>
-                                            </button>
-                                        ))}
+                                        <button type="button" onClick={() => { setAddress(suggestion.district.areaName ? `${suggestion.district.areaName}, ${suggestion.district.name}` : suggestion.district.name); setStatus(null); setMatchedArea(null); }}>
+                                            <strong>{suggestion.district.areaName || suggestion.district.name}</strong>
+                                            <span>{suggestion.district.name} · {suggestion.available ? 'Services available' : 'No active partners'}</span>
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -183,7 +123,7 @@ function Content() {
 
                         {status === 'success' && (
                             <div className="checker-result success">
-                                Great news! We deliver to <strong>"{checkedAddress}"</strong> from our <strong>{matchedArea?.hub}</strong> hub.
+                                Great news! We deliver to <strong>"{checkedAddress}"</strong> in <strong>{matchedArea?.district?.name}</strong>.
                             </div>
                         )}
 

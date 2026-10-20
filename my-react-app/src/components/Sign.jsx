@@ -1,63 +1,51 @@
 import React, { useState } from 'react';
+import { saveSession } from '../auth/session.js';
 
-function Sign({ onBack, onRegisterClick }) {
+function Sign({ onBack, onRegisterClick, onSignedIn }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-   const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
 
-    e.preventDefault();
+        try {
+            const response = await fetch(
+                "http://localhost:8080/api/auth/login",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password }),
+                }
+            );
 
-    try {
+            const data = await response.json();
 
-        const response = await fetch(
-            "http://localhost:8080/api/auth/login",
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-
-                    email,
-
-                    password
-
-                })
+            if (!response.ok) {
+                setError(typeof data === 'string' ? data : (data?.message || "Invalid email or password."));
+                return;
             }
-        );
 
-        const user = await response.json();
+            const result = saveSession(data);
+            if (!result.ok) {
+                setError(result.error);
+                return;
+            }
 
-       if (response.ok && user != null) {
+            // Notify the app shell — no page reload, React state is preserved
+            onSignedIn?.(result.user);
+            onBack?.();
 
-    localStorage.setItem(
-        "user",
-        JSON.stringify(user)
-    );
-
-    alert("Login Successful!");
-    window.location.reload();
-
-    window.location.href = "/";
-
-} else {
-
-    alert("Invalid Email or Password");
-
-}
-
-    } catch (error) {
-
-        console.log(error);
-
-        alert("Server Error");
-
-    }
-
-};
+        } catch (err) {
+            console.error(err);
+            setError("Server error. Please make sure the backend is running.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="sign-container">
@@ -334,7 +322,14 @@ function Sign({ onBack, onRegisterClick }) {
                         <a href="#" className="forgot-password">Forgot password?</a>
                     </div>
 
-                    <button type="submit" className="sign-btn">Sign In</button>
+                    <button type="submit" className="sign-btn" disabled={loading}>
+                        {loading ? 'Signing in...' : 'Sign In'}
+                    </button>
+                    {error && (
+                        <p style={{ color: '#c0392b', marginTop: '12px', fontSize: '0.9rem', textAlign: 'center', fontWeight: 500 }}>
+                            {error}
+                        </p>
+                    )}
                 </form>
 
                 <div className="divider">

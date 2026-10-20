@@ -9,7 +9,7 @@ const stats = [
                 <polyline points="24,12 24,24 32,30" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
         ),
-        number: '≤ 30 min',
+        number: '= 30 min',
         label: 'Guaranteed Delivery',
         sub: 'Faster than any competitor in your city.',
     },
@@ -90,7 +90,7 @@ const features = [
             </svg>
         ),
         title: 'Real-Time Live Tracking',
-        desc: 'Watch your order move on a live map — from kitchen to your doorstep, every single step.',
+        desc: 'Watch your order move on a live map � from kitchen to your doorstep, every single step.',
     },
     {
         svg: (
@@ -100,7 +100,7 @@ const features = [
             </svg>
         ),
         title: 'Zero Hidden Charges',
-        desc: 'What you see is what you pay. Transparent pricing, no surprise fees — guaranteed.',
+        desc: 'What you see is what you pay. Transparent pricing, no surprise fees � guaranteed.',
     },
     {
         svg: (
@@ -114,6 +114,7 @@ const features = [
 ];
 
 function WhyChooseUs() {
+
     const [isVisible, setIsVisible] = useState(false);
     const [featVisible, setFeatVisible] = useState(false);
     const statsRef = useRef();
@@ -136,7 +137,7 @@ function WhyChooseUs() {
     return (
         <section className="wcu-section" id="why-choose-us">
 
-            {/* ── HEADLINE BLOCK ── */}
+            {/* -- HEADLINE BLOCK -- */}
             <div className="wcu-headline">
                 <span className="wcu-eyebrow">TRUSTED BY THOUSANDS ACROSS TAMIL NADU</span>
                 <h2 className="wcu-title">
@@ -144,12 +145,12 @@ function WhyChooseUs() {
                     <em>A Promise We Keep.</em>
                 </h2>
                 <p className="wcu-desc">
-                    Anywhere isn't just an app — it's your neighbourhood's most reliable partner.
+                    Anywhere isn't just an app � it's your neighbourhood's most reliable partner.
                     Every order is a commitment. Every delivery is a guarantee.
                 </p>
             </div>
 
-            {/* ── STATS GRID ── */}
+            {/* -- STATS GRID -- */}
             <div
                 className={`wcu-stats-grid ${isVisible ? 'wcu-visible' : ''}`}
                 ref={statsRef}
@@ -168,12 +169,12 @@ function WhyChooseUs() {
                 ))}
             </div>
 
-            {/* ── DIVIDER ── */}
+            {/* -- DIVIDER -- */}
             <div className="wcu-divider">
                 <span>What Makes Us Different</span>
             </div>
 
-            {/* ── FEATURES GRID ── */}
+            {/* -- FEATURES GRID -- */}
             <div
                 className={`wcu-features-grid ${featVisible ? 'wcu-feat-visible' : ''}`}
                 ref={featRef}
@@ -191,13 +192,13 @@ function WhyChooseUs() {
                 ))}
             </div>
 
-            {/* ── BOTTOM CTA STRIP ── */}
+            {/* -- BOTTOM CTA STRIP -- */}
             <div className="wcu-bottom-strip">
                 <p>
                     <strong>Join 50,000+ satisfied customers</strong> who trust Anywhere
-                    for their daily essentials — food, grocery & medicines.
+                    for their daily essentials � food, grocery & medicines.
                 </p>
-                <a href="#services" className="wcu-cta-btn">Explore Services ↓</a>
+                <a href="#services" className="wcu-cta-btn">Explore Services ?</a>
             </div>
 
         </section>

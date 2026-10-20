@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import "./Payment.css";
+import { API_BASE } from "../../services/apiConfig";
+import { apiFetchJson } from "../../services/apiClient";
 
-const API_URL = "http://localhost:8080/api";
+const API_URL = API_BASE;
 
 function PaymentHistory({ onBack, onSignInClick }) {
     const user = JSON.parse(localStorage.getItem("user"));

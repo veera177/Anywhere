@@ -1,115 +1,47 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import './MedicineDelivery.css';
 import { addItemToCart, fetchCartCount } from '../../utils/cartApi';
+import DeliveryMap from '../../components/DeliveryMap';
+import { getDistricts, getServiceRadiusKm, resolvePreferredDistrictId } from '../../services/districts';
+import { SkeletonGrid, SkeletonStatus } from '../../components/Skeleton';
+import { Icons } from '../../components/Icons';
+import { MEDICINE_PRODUCTS_BASE, PHARMACIES_BASE } from '../../services/apiConfig';
 
-const API_URL = 'http://localhost:8080/api/medicine-products';
-const PHARMACY_API = 'http://localhost:8080/api/pharmacies';
+const API_URL = MEDICINE_PRODUCTS_BASE;
+const PHARMACY_API = PHARMACIES_BASE;
 
-const landmarkByDistrict = {
-    salem: 'Near Salem Junction Railway Station',
-    trichy: 'Near Rockfort Temple and Central Bus Stand',
-    thanjavur: 'Near Brihadeeswarar Temple',
-    theni: 'Near Theni Old Bus Stand',
-    kanyakumari: 'Near Nagercoil Clock Tower',
-    karaikudi: 'Near Karaikudi New Bus Stand',
-    pollachi: 'Near Pollachi Market Road',
-    ooty: 'Near Ooty Lake and Boat House',
-    ambur: 'Near Ambur Bazaar',
-    tiruvannamalai: 'Near Arunachaleswarar Temple'
-};
+/* Districts are loaded from the database via /api/districts (see services/districts.js).
+   No district names, hubs, landmarks or coordinates are hardcoded. */
 
-/* ── District hubs ── */
-const districtLocations = [
-    {
-        id: 'salem',
-        district: 'Salem',
-        hub: 'Salem Junction',
-        lat: 11.6643,
-        lon: 78.1460,
-        note: 'Central Salem hub for local medicine dispatch routes.'
-    },
-    {
-        id: 'trichy',
-        district: 'Trichy',
-        hub: 'Trichy Central',
-        lat: 10.7905,
-        lon: 78.7047,
-        note: 'District hub for Trichy city and nearby areas.'
-    },
-    {
-        id: 'thanjavur',
-        district: 'Thanjavur',
-        hub: 'Thanjavur Main',
-        lat: 10.7870,
-        lon: 79.1378,
-        note: 'Hub for Thanjavur town and surrounding medicine dispatch.'
-    },
-    {
-        id: 'theni',
-        district: 'Theni',
-        hub: 'Theni Main',
-        lat: 10.0104,
-        lon: 77.4768,
-        note: 'Hub for Theni town and nearby village healthcare orders.'
-    },
-    {
-        id: 'kanyakumari',
-        district: 'Kanyakumari',
-        hub: 'Nagercoil',
-        lat: 8.1833,
-        lon: 77.4119,
-        note: 'Coastal hub for Nagercoil and surrounding medical stores.'
-    },
-    {
-        id: 'karaikudi',
-        district: 'Karaikudi',
-        hub: 'Karaikudi Main',
-        lat: 10.0732,
-        lon: 78.7675,
-        note: 'Chettinad region hub for local pharmaceutical provisions.'
-    },
-    {
-        id: 'pollachi',
-        district: 'Pollachi',
-        hub: 'Pollachi Town',
-        lat: 10.6609,
-        lon: 77.0087,
-        note: 'Kongu region hub for town and semi-urban medicine delivery.'
-    },
-    {
-        id: 'ooty',
-        district: 'Ooty',
-        hub: 'Ooty Lake Road',
-        lat: 11.4102,
-        lon: 76.6950,
-        note: 'Hill station hub for quick clinical supplies.'
-    },
-    {
-        id: 'ambur',
-        district: 'Ambur',
-        hub: 'Ambur Bazaar',
-        lat: 12.7900,
-        lon: 78.7160,
-        note: 'Famous Ambur bazaar hub for healthcare products.'
-    },
-    {
-        id: 'tiruvannamalai',
-        district: 'Tiruvannamalai',
-        hub: 'Temple Area',
-        lat: 12.2253,
-        lon: 79.0747,
-        note: 'Temple town hub for organic and essential medical goods.'
-    }
-];
-
-/* Demo fallback data removed. Application now uses Spring Boot + MySQL only. */
-
-function MedicineDelivery({ onBack, onGoToCart }) {
+function MedicineDelivery({ onBack, onGoToCart, onUploadPrescription }) {
     const [products, setProducts] = useState([]);
     const [pharmacies, setPharmacies] = useState([]);
     const [selectedPharmacy, setSelectedPharmacy] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState('All');
-    const [selectedDistrictId, setSelectedDistrictId] = useState('salem');
+    const [selectedDistrictId, setSelectedDistrictId] = useState('');
+
+    /* Districts + coverage radius come from the database/platform settings */
+    const [districts, setDistricts] = useState([]);
+    const [radiusKm, setRadiusKm] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        getDistricts().then((list) => {
+            if (cancelled) return;
+            const availableDistricts = list.filter((district) => Number(district.partnerCounts?.medicine || 0) > 0);
+            setDistricts(availableDistricts);
+            // Profile district is the user's active service area.
+            setSelectedDistrictId((current) =>
+                current && availableDistricts.some((d) => d.id === current)
+                    ? current
+                    : resolvePreferredDistrictId(availableDistricts, '')
+            );
+        });
+        getServiceRadiusKm('medicine').then((km) => {
+            if (!cancelled) setRadiusKm(km);
+        });
+        return () => { cancelled = true; };
+    }, []);
     const [searchTerm, setSearchTerm] = useState('');
     const [cart, setCart] = useState([]);
     const [cartCount, setCartCount] = useState(0);
@@ -261,22 +193,11 @@ function MedicineDelivery({ onBack, onGoToCart }) {
         selectedPharmacy
     ]);
 
-    /* ── Selected district ── */
+    /* ── Selected district (from database) ── */
     const selectedDistrict =
-        districtLocations.find(
-            location => location.id === selectedDistrictId
-        ) || districtLocations[0];
+        districts.find(d => d.id === selectedDistrictId) || null;
 
-    const landmark =
-        landmarkByDistrict[selectedDistrict.id] ||
-        `Near ${selectedDistrict.hub}`;
-
-    const mapLink =
-        `https://www.google.com/maps/search/?api=1&query=${
-            selectedDistrict.lat
-        },${
-            selectedDistrict.lon
-        }`;
+    const districtName = selectedDistrict?.name || '…';
 
     const addToCart = async (product) => {
         if (product.stock === 0) return;
@@ -330,7 +251,7 @@ function MedicineDelivery({ onBack, onGoToCart }) {
                     className="medicine-back-btn"
                     onClick={onBack}
                 >
-                    ← Back
+                    <Icons.ArrowLeft className="medicine-nav-icon" /> Back
                 </button>
 
                 <div>
@@ -338,12 +259,12 @@ function MedicineDelivery({ onBack, onGoToCart }) {
                         Anywhere
                     </span>
                     <span className="medicine-location">
-                        {selectedDistrict.district} essential medicines
+                        {districtName} essential medicines
                     </span>
                 </div>
 
                 <button type="button" className="medicine-cart-pill" onClick={onGoToCart}>
-                    🛒 Cart <strong>{cartCountDisplay}</strong>
+                    <Icons.Cart className="medicine-nav-icon" /> Cart <strong>{cartCountDisplay}</strong>
                 </button>
             </nav>
 
@@ -351,62 +272,80 @@ function MedicineDelivery({ onBack, onGoToCart }) {
             <section className="medicine-hero">
                 <div className="medicine-hero-copy">
                     <span className="medicine-kicker">
-                        {
-                            isFromServer
-                                ? '🟢 Live pharmacy stocks'
-                                : '🟡 Demo health inventory'
-                        }
+                        {isFromServer
+                            ? '🟢 Live pharmacy stocks'
+                            : '🟡 Stock unavailable offline'}
                     </span>
                     <h1>
-                        Trusted essential medicines delivered to {selectedDistrict.district}.
+                        Trusted essential medicines delivered to {districtName}.
                     </h1>
                     <p>
                         Order prescription and wellness products from licensed pharmacies and medical hubs.
                     </p>
 
-                    <div className="medicine-search-panel">
-                        <select
-                            value={selectedDistrictId}
-                            onChange={(event) => {
-                                setSelectedDistrictId(
-                                    event.target.value
-                                );
-                                setSelectedCategory('All');
-                                setSearchTerm('');
-                                setSelectedPharmacy(null);
-                            }}
-                        >
-                            {
-                                districtLocations.map((location) => (
-                                    <option
-                                        key={location.id}
-                                        value={location.id}
-                                    >
-                                        {location.district} — {location.hub}
-                                    </option>
-                                ))
-                            }
-                        </select>
+                    {/* Prescription toolbar — §8 placement: beside the search */}
+                    <div className="medicine-toolbar">
+                        <div className="medicine-search-panel">
+                            <select
+                                className="medicine-search-select"
+                                value={selectedDistrictId}
+                                onChange={(event) => {
+                                    setSelectedDistrictId(
+                                        event.target.value
+                                    );
+                                    setSelectedCategory('All');
+                                    setSearchTerm('');
+                                    setSelectedPharmacy(null);
+                                }}
+                            >
+                                {
+                                    districts.map((location) => (
+                                        <option
+                                            key={location.id}
+                                            value={location.id}
+                                        >
+                                            {location.name}
+                                        </option>
+                                    ))
+                                }
+                            </select>
 
-                        <input
-                            type="search"
-                            placeholder="Search paracetamol, syrup, vitamins, bandages..."
-                            value={searchTerm}
-                            onChange={(event) =>
-                                setSearchTerm(
-                                    event.target.value
-                                )
-                            }
-                        />
+                            <div className="medicine-search-field">
+                                <Icons.Search className="medicine-search-icon" />
+                                <input
+                                    type="search"
+                                    placeholder="Search paracetamol, syrup, vitamins, bandages..."
+                                    value={searchTerm}
+                                    onChange={(event) =>
+                                        setSearchTerm(
+                                            event.target.value
+                                        )
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="medicine-prescription-btn"
+                            onClick={onUploadPrescription}
+                        >
+                            <Icons.Upload className="medicine-prescription-icon" />
+                            <span>Upload Prescription</span>
+                        </button>
                     </div>
                 </div>
 
                 <aside className="medicine-hero-card">
-                    <span>Selected Medical Hub</span>
+                    <span>Selected district</span>
                     <strong>
-                        {selectedDistrict.district}
+                        {districtName}
                     </strong>
-                    <p>{selectedDistrict.note}</p>
+                    <p>
+                        {radiusKm
+                            ? `Delivery from each contracted pharmacy within ${radiusKm} km of its own location.`
+                            : 'Delivery coverage per pharmacy, from platform settings.'}
+                    </p>
                 </aside>
             </section>
 
@@ -417,50 +356,46 @@ function MedicineDelivery({ onBack, onGoToCart }) {
                 }`}
             >
                 <span>
-                    {
-                        isLoadingProducts
-                            ? '⏳ Loading...'
-                            : isFromServer
-                                ? '✅ Database connected'
-                                : '⚠️ Demo fallback'
-                    }
+                    {isLoadingProducts ? (
+                        <SkeletonStatus>Loading medicines…</SkeletonStatus>
+                    ) : isFromServer ? (
+                        'Database connected'
+                    ) : (
+                        'Server offline'
+                    )}
                 </span>
                 <p>{productMessage}</p>
             </div>
 
-            {/* MAP */}
+            {/* COVERAGE MAP — real pharmacy locations from the database */}
             <section className="medicine-map-section">
                 <div className="medicine-map-copy">
-                    <span>Location marker</span>
+                    <span>Live coverage</span>
                     <h2>
-                        {selectedDistrict.hub}
+                        Pharmacies in {districtName}
                     </h2>
                     <p>
-                        Emergency medicine dispatch coverage around {selectedDistrict.district}. Use the nearby landmark to identify the service point.
+                        Each contracted pharmacy is shown at its actual location with its own {radiusKm ?? '…'} km delivery radius, centred on that pharmacy.
                     </p>
-                    <div className="medicine-map-meta">
-                        <strong>
-                            Landmark: {landmark}
-                        </strong>
-                        <strong>
-                            Lat: {selectedDistrict.lat}
-                        </strong>
-                        <strong>
-                            Lng: {selectedDistrict.lon}
-                        </strong>
-                    </div>
                 </div>
 
                 <div className="medicine-map-frame">
-                    <div className="medicine-location-preview">
-                        <div className="medicine-location-pin">📍</div>
-                        <span>{selectedDistrict.district}</span>
-                        <h3>{selectedDistrict.hub}</h3>
-                        <p>{landmark}</p>
-                        <a href={mapLink} target="_blank" rel="noopener noreferrer">
-                            Open map
-                        </a>
-                    </div>
+                    <DeliveryMap
+                        lat={selectedDistrict?.lat}
+                        lon={selectedDistrict?.lon}
+                        serviceType="medicine"
+                        radiusKm={radiusKm}
+                        markers={pharmacies.map((p) => ({
+                            id: p.id,
+                            name: p.name,
+                            lat: p.latitude,
+                            lon: p.longitude,
+                            rating: p.rating,
+                            address: p.location,
+                        }))}
+                        activeStoreId={selectedPharmacy?.id}
+                        onSelectMarker={(p) => setSelectedPharmacy(pharmacies.find((x) => x.id === p.id) || null)}
+                    />
                 </div>
             </section>
 
@@ -469,36 +404,35 @@ function MedicineDelivery({ onBack, onGoToCart }) {
                 /* PHARMACIES VIEW */
                 <section className="pharmacy-container">
                     <div className="pharmacy-section-header">
-                        <h2>Pharmacies in {selectedDistrict.district}</h2>
-                        <p>Showing licensed healthcare dispensaries near {selectedDistrict.hub}</p>
+                        <h2>Pharmacies in {districtName}</h2>
+                        <p>Showing licensed healthcare dispensaries across {districtName}</p>
                     </div>
 
-                    {filteredPharmacies.length === 0 ? (
+                    {isLoadingProducts ? (
+                        <SkeletonGrid count={3} lines={3} className="pharmacy-skeleton-grid" />
+                    ) : filteredPharmacies.length === 0 ? (
                         <div className="no-results">
                             <h3>No pharmacies found matching your search.</h3>
                             <p>Try searching for a different shop name or location.</p>
                         </div>
                     ) : (
-                        <div className="pharmacy-grid">
+                        <div className="pharmacy-grid aw-reveal-stagger">
                             {filteredPharmacies.map((pharmacy) => (
                                 <article
                                     key={pharmacy.id}
                                     className="pharmacy-card-premium"
                                     onClick={() => setSelectedPharmacy(pharmacy)}
                                 >
-                                    <div className="pharmacy-card-decor">
-                                        <span className="pharmacy-badge">
-                                            {pharmacy.deliveryType || 'URBAN'}
-                                        </span>
-                                    </div>
+                                    <div className="pharmacy-card-decor" />
                                     <div className="pharmacy-card-body">
                                         <h3>{pharmacy.name}</h3>
                                         <p className="pharmacy-loc">
-                                            📍 {pharmacy.location}
+                                            {pharmacy.location}
                                         </p>
                                         <div className="pharmacy-rating-row">
                                             <span className="pharmacy-stars">
-                                                ⭐ {pharmacy.rating}
+                                                <Icons.Star className="pharmacy-star-icon" />
+                                                {pharmacy.rating}
                                             </span>
                                             <span className="view-menu-link">
                                                 View Medicines →
@@ -522,12 +456,12 @@ function MedicineDelivery({ onBack, onGoToCart }) {
                                 setSearchTerm('');
                             }}
                         >
-                            ← Back to Pharmacies
+                            <Icons.ArrowLeft className="medicine-nav-icon" /> Back to Pharmacies
                         </button>
                         <div className="selected-pharmacy-info">
                             <h2>{selectedPharmacy.name}</h2>
                             <p>
-                                📍 {selectedPharmacy.location} • ⭐ {selectedPharmacy.rating} • {selectedPharmacy.deliveryType}
+                                {selectedPharmacy.location} • <Icons.Star className="pharmacy-star-icon" /> {selectedPharmacy.rating} • {selectedPharmacy.deliveryType}
                             </p>
                         </div>
                     </div>
@@ -578,7 +512,8 @@ function MedicineDelivery({ onBack, onGoToCart }) {
                                                     </p>
                                                 </div>
                                                 <span className="medicine-rating">
-                                                    ⭐ {product.rating}
+                                                    <Icons.Star className="pharmacy-star-icon" />
+                                                    {product.rating}
                                                 </span>
                                             </div>
 
@@ -613,7 +548,7 @@ function MedicineDelivery({ onBack, onGoToCart }) {
 
                         {/* CART */}
                         <aside className="medicine-cart">
-                            <h2>🛒 Your Prescription Order</h2>
+                            <h2><Icons.Cart className="medicine-cart-icon" /> Your Prescription Order</h2>
                             {cart.length === 0 ? (
                                 <p className="empty-cart">
                                     Add pharmaceutical items to preview your order summary.
@@ -637,7 +572,7 @@ function MedicineDelivery({ onBack, onGoToCart }) {
                                     </div>
 
                                     <button type="button" className="checkout-btn" onClick={onGoToCart}>
-                                        Continue to Cart →
+                                        <Icons.ArrowRight className="medicine-nav-icon" /> Continue to Cart
                                     </button>
                                 </>
                             )}

@@ -1,16 +1,13 @@
 import { useState } from "react";
 import "./NavbarRepair.css";
 import "./NavbarPolish.css";
+import { getSignedInUser, clearSession } from "../auth/session.js";
 
 function Navbar({ onSignInClick, onProfileClick, onCartClick, onOrdersClick }) {
     const [menuOpen, setMenuOpen] = useState(false);
 
-    let user = null;
-    try {
-        user = JSON.parse(localStorage.getItem("user"));
-    } catch {
-        user = null;
-    }
+    // getSignedInUser() validates the token on every render — never shows stale data
+    const user = getSignedInUser();
 
     const displayName = user?.fullName || user?.name || "Customer";
     const initials = displayName.split(" ").filter(Boolean).slice(0, 2)
@@ -23,8 +20,8 @@ function Navbar({ onSignInClick, onProfileClick, onCartClick, onOrdersClick }) {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("user");
-        window.location.reload();
+        clearSession();
+        window.location.reload(); // Full reload to clear all in-memory React state
     };
 
     return (

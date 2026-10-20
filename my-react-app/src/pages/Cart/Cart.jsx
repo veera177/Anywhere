@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import './Cart.css';
+import { CART_BASE } from '../../services/apiConfig';
+import { apiFetchJson, apiFetchText, getSignedInUser } from '../../services/apiClient';
 
-const API_BASE = 'http://localhost:8080/api/cart';
+const API_BASE = CART_BASE;
 
 /* ── Service label map ── */
 const SERVICE_LABELS = {
@@ -26,7 +28,7 @@ function Cart({ onBack, onSignInClick, onCheckout }) {
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
     /* ── User ── */
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = getSignedInUser();
 
     /* ── Toast Helper ── */
     const showToast = useCallback((message, type = 'success') => {
@@ -38,17 +40,13 @@ function Cart({ onBack, onSignInClick, onCheckout }) {
 
     /* ── Fetch Cart ── */
     const fetchCart = useCallback(async () => {
-        if (!user) return;
+        if (!user?.id) return;
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_BASE}/${user.id}`);
-            if (!response.ok) {
-                throw new Error('Failed to load cart');
-            }
-            const data = await response.json();
+            const response = await apiFetchJson(`${API_BASE}/${user.id}`);
             // FILTER OUT COURIER ITEMS
-            const filteredData = (data || []).filter(item => item.serviceType !== 'COURIER');
+            const filteredData = (response || []).filter(item => item.serviceType !== 'COURIER');
             setCartItems(filteredData);
         } catch (err) {
             console.error(err);
@@ -68,9 +66,8 @@ function Cart({ onBack, onSignInClick, onCheckout }) {
         if (newQuantity < 1) return;
         setActionLoading(cartId);
         try {
-            const response = await fetch(`${API_BASE}/update?cartId=${cartId}&quantity=${newQuantity}`, { method: 'PUT' });
-            const message = await response.text();
-            if (response.ok && message === 'Quantity Updated') {
+            const message = await apiFetchText(`${API_BASE}/update?cartId=${cartId}&quantity=${newQuantity}`, { method: 'PUT' });
+            if (message === 'Quantity Updated') {
                 setCartItems(prev => prev.map(item => item.cartId === cartId ? { ...item, quantity: newQuantity } : item));
                 showToast('Quantity updated', 'success');
             } else {
@@ -88,9 +85,8 @@ function Cart({ onBack, onSignInClick, onCheckout }) {
     const removeItem = async (cartId) => {
         setActionLoading(cartId);
         try {
-            const response = await fetch(`${API_BASE}/remove/${cartId}`, { method: 'DELETE' });
-            const message = await response.text();
-            if (response.ok && message === 'Item Removed') {
+            const message = await apiFetchText(`${API_BASE}/remove/${cartId}`, { method: 'DELETE' });
+            if (message === 'Item Removed') {
                 setCartItems(prev => prev.filter(item => item.cartId !== cartId));
                 showToast('Item removed', 'info');
             } else {
@@ -106,12 +102,11 @@ function Cart({ onBack, onSignInClick, onCheckout }) {
 
     /* ── Clear Cart ── */
     const clearCart = async () => {
-        if (!user) return;
+        if (!user?.id) return;
         setActionLoading('clearing');
         try {
-            const response = await fetch(`${API_BASE}/clear/${user.id}`, { method: 'DELETE' });
-            const message = await response.text();
-            if (response.ok) {
+            const message = await apiFetchText(`${API_BASE}/clear/${user.id}`, { method: 'DELETE' });
+            if (message) {
                 // If it succeeds, we empty it all (except courier if any, but backend wipes all for user).
                 setCartItems([]);
                 showToast(message === 'Cart Already Empty' ? 'Cart is already empty' : 'Cart cleared', 'info');

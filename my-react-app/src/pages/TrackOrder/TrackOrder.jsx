@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import "./TrackOrder.css";
 import OrderSuccessBanner from "../../components/OrderSuccessBanner.jsx";
-const API_URL = "http://localhost:8080/api";
+import { API_BASE } from "../../services/apiConfig";
+import { apiFetchJson } from "../../services/apiClient";
+
+const API_URL = API_BASE;
 
 const STEPS = [
     "ORDER_PLACED",

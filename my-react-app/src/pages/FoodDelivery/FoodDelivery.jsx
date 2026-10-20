@@ -1,127 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import './FoodDelivery.css';
 import { addItemToCart, fetchCartCount } from '../../utils/cartApi';
+import DeliveryMap from '../../components/DeliveryMap';
+import { getDistricts, getServiceRadiusKm, resolvePreferredDistrictId } from '../../services/districts';
+import { SkeletonGrid, SkeletonStatus } from '../../components/Skeleton';
+import { FOOD_PRODUCTS_BASE, RESTAURANTS_BASE } from '../../services/apiConfig';
+import { apiFetchJson } from '../../services/apiClient';
+import { getSignedInUser } from '../../auth/session.js';
 
-const API_URL = 'http://localhost:8080/api/food-products';
+const API_URL = FOOD_PRODUCTS_BASE;
+const RESTAURANT_API = RESTAURANTS_BASE;
 
-const RESTAURANT_API =
-    'http://localhost:8080/api/restaurants';
-
-const landmarkByDistrict = {
-    salem: 'Near Salem Junction Railway Station',
-    trichy: 'Near Rockfort Temple and Central Bus Stand',
-    thanjavur: 'Near Brihadeeswarar Temple',
-    theni: 'Near Theni Old Bus Stand',
-    kanyakumari: 'Near Nagercoil Clock Tower',
-    karaikudi: 'Near Karaikudi New Bus Stand',
-    pollachi: 'Near Pollachi Market Road',
-    ooty: 'Near Ooty Lake and Boat House',
-    ambur: 'Near Ambur Bazaar',
-    tiruvannamalai: 'Near Arunachaleswarar Temple'
-};
-
-/* ── District hubs ── */
-const districtLocations = [
-    {
-        id: 'salem',
-        district: 'Salem',
-        hub: 'Salem Junction',
-        lat: 11.6643,
-        lon: 78.1460,
-        note: 'Central Salem hub for local restaurant pickup routes.'
-    },
-    {
-        id: 'trichy',
-        district: 'Trichy',
-        hub: 'Trichy Central',
-        lat: 10.7905,
-        lon: 78.7047,
-        note: 'District hub for Trichy city and nearby areas.'
-    },
-    {
-        id: 'thanjavur',
-        district: 'Thanjavur',
-        hub: 'Thanjavur Main',
-        lat: 10.7870,
-        lon: 79.1378,
-        note: 'Hub for Thanjavur town and temple area deliveries.'
-    },
-    {
-        id: 'theni',
-        district: 'Theni',
-        hub: 'Theni Main',
-        lat: 10.0104,
-        lon: 77.4768,
-        note: 'Hub for Theni town and nearby village food orders.'
-    },
-    {
-        id: 'kanyakumari',
-        district: 'Kanyakumari',
-        hub: 'Nagercoil',
-        lat: 8.1833,
-        lon: 77.4119,
-        note: 'Coastal hub for Nagercoil and surrounding areas.'
-    },
-    {
-        id: 'karaikudi',
-        district: 'Karaikudi',
-        hub: 'Karaikudi Main',
-        lat: 10.0732,
-        lon: 78.7675,
-        note: 'Chettinad region hub for authentic local cuisine.'
-    },
-    {
-        id: 'pollachi',
-        district: 'Pollachi',
-        hub: 'Pollachi Town',
-        lat: 10.6609,
-        lon: 77.0087,
-        note: 'Kongu region hub for town and semi-urban delivery.'
-    },
-    {
-        id: 'ooty',
-        district: 'Ooty',
-        hub: 'Ooty Lake Road',
-        lat: 11.4102,
-        lon: 76.6950,
-        note: 'Hill station hub for cafes and restaurants.'
-    },
-    {
-        id: 'ambur',
-        district: 'Ambur',
-        hub: 'Ambur Bazaar',
-        lat: 12.7900,
-        lon: 78.7160,
-        note: 'Famous biryani town hub for food delivery.'
-    },
-    {
-        id: 'tiruvannamalai',
-        district: 'Tiruvannamalai',
-        hub: 'Temple Area',
-        lat: 12.2253,
-        lon: 79.0747,
-        note: 'Temple town hub for breakfast and local food.'
-    }
-];
-
-/* ── Demo fallback products ── */
-const fallbackProducts = [
-    {
-        id: 101,
-        restaurantName: 'Salem RR Biryani',
-        name: 'Salem Parotta Set',
-        district: 'salem',
-        category: 'Dinner',
-        price: 199,
-        rating: 4.5,
-        imageUrl:
-            'https://images.unsplash.com/photo-1604908177522-040f7c20af1e?auto=format&fit=crop&w=900&q=80',
-        description: 'Layered parotta with spicy salna.',
-        offerTag: 'Bestseller',
-        foodType: 'Non-Veg',
-        stock: 14
-    }
-];
+/* Districts are loaded from the database via /api/districts (see services/districts.js).
+   No district names, hubs, landmarks or coordinates are hardcoded. */
 
 function FoodDelivery({ onBack, onGoToCart }) {
 
@@ -138,7 +29,30 @@ function FoodDelivery({ onBack, onGoToCart }) {
         useState('All');
 
     const [selectedDistrictId, setSelectedDistrictId] =
-        useState('salem');
+        useState('');
+
+    /* Districts + coverage radius come from the database/platform settings */
+    const [districts, setDistricts] = useState([]);
+    const [radiusKm, setRadiusKm] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        getDistricts().then((list) => {
+            if (cancelled) return;
+            const availableDistricts = list.filter((district) => Number(district.partnerCounts?.food || 0) > 0);
+            setDistricts(availableDistricts);
+            // Profile district is the user's active service area.
+            setSelectedDistrictId((current) =>
+                current && availableDistricts.some((d) => d.id === current)
+                    ? current
+                    : resolvePreferredDistrictId(availableDistricts, '')
+            );
+        });
+        getServiceRadiusKm('food').then((km) => {
+            if (!cancelled) setRadiusKm(km);
+        });
+        return () => { cancelled = true; };
+    }, []);
 
     const [searchTerm, setSearchTerm] =
         useState('');
@@ -148,7 +62,7 @@ function FoodDelivery({ onBack, onGoToCart }) {
     const [toast, setToast] = useState('');
 
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('user'));
+        const user = getSignedInUser();
         if (!user?.id) return;
         fetchCartCount(user.id).then(setCartCount);
     }, []);
@@ -172,13 +86,9 @@ function FoodDelivery({ onBack, onGoToCart }) {
         const loadRestaurants = async () => {
             setIsLoadingProducts(true);
             try {
-                const response = await fetch(
+                const data = await apiFetchJson(
                     `${RESTAURANT_API}?district=${selectedDistrictId}`
                 );
-                if (!response.ok) {
-                    throw new Error('Restaurants API Error');
-                }
-                const data = await response.json();
                 setRestaurants(data || []);
                 setIsFromServer(true);
             } catch (error) {
@@ -207,13 +117,9 @@ function FoodDelivery({ onBack, onGoToCart }) {
         const loadProducts = async () => {
             setIsLoadingProducts(true);
             try {
-                const response = await fetch(
+                const data = await apiFetchJson(
                     `${API_URL}?restaurantId=${selectedRestaurant.id}`
                 );
-                if (!response.ok) {
-                    throw new Error('Products API Error');
-                }
-                const data = await response.json();
                 if (Array.isArray(data) && data.length > 0) {
                     setProducts(data);
                     setIsFromServer(true);
@@ -225,13 +131,9 @@ function FoodDelivery({ onBack, onGoToCart }) {
                 }
             } catch (error) {
                 console.log(error);
-                // Fallback products filtered by district
-                const demoData = fallbackProducts.filter(
-                    p => p.district === selectedDistrictId
-                );
-                setProducts(demoData.length > 0 ? demoData : fallbackProducts);
+                setProducts([]);
                 setIsFromServer(false);
-                setProductMessage('Spring Boot API not connected. Showing demo dishes.');
+                setProductMessage('Unable to load dishes from the server.');
             } finally {
                 setIsLoadingProducts(false);
             }
@@ -307,29 +209,18 @@ function FoodDelivery({ onBack, onGoToCart }) {
         selectedRestaurant
     ]);
 
-    /* ── Selected district ── */
+    /* ── Selected district (from database) ── */
     const selectedDistrict =
-        districtLocations.find(
-            location => location.id === selectedDistrictId
-        ) || districtLocations[0];
+        districts.find(d => d.id === selectedDistrictId) || null;
 
-    const landmark =
-        landmarkByDistrict[selectedDistrict.id] ||
-        `Near ${selectedDistrict.hub}`;
-
-    const mapLink =
-        `https://www.google.com/maps/search/?api=1&query=${
-            selectedDistrict.lat
-        },${
-            selectedDistrict.lon
-        }`;
+    const districtName = selectedDistrict?.name || '…';
 
     const addToCart = async (product) => {
         if (product.stock === 0) return;
 
-        const user = JSON.parse(localStorage.getItem('user'));
+        const user = getSignedInUser();
         if (!user) {
-            alert('Please Sign In First');
+            alert('Please sign in to add items to your cart.');
             return;
         }
 
@@ -387,7 +278,7 @@ function FoodDelivery({ onBack, onGoToCart }) {
                     </span>
 
                     <span className="food-location">
-                        {selectedDistrict.district} food delivery
+                        {districtName} food delivery
                     </span>
 
                 </div>
@@ -408,13 +299,13 @@ function FoodDelivery({ onBack, onGoToCart }) {
                         {
                             isFromServer
                                 ? '🟢 Live menu from database'
-                                : '🟡 Demo menu'
+                                : '🟡 Menu unavailable offline'
                         }
 
                     </span>
 
                     <h1>
-                        Food delivered fast from nearby {selectedDistrict.district} kitchens.
+                        Food delivered fast from nearby {districtName} kitchens.
                     </h1>
 
                     <p>
@@ -440,13 +331,13 @@ function FoodDelivery({ onBack, onGoToCart }) {
                         >
 
                             {
-                                districtLocations.map((location) => (
+                                districts.map((location) => (
 
                                     <option
                                         key={location.id}
                                         value={location.id}
                                     >
-                                        {location.district} — {location.hub}
+                                        {location.name}
                                     </option>
 
                                 ))
@@ -471,13 +362,17 @@ function FoodDelivery({ onBack, onGoToCart }) {
 
                 <aside className="food-hero-card">
 
-                    <span>Selected hub</span>
+                    <span>Selected district</span>
 
                     <strong>
-                        {selectedDistrict.district}
+                        {districtName}
                     </strong>
 
-                    <p>{selectedDistrict.note}</p>
+                    <p>
+                        {radiusKm
+                            ? `Delivery from each contracted restaurant within ${radiusKm} km of its own location.`
+                            : 'Delivery coverage per restaurant, from platform settings.'}
+                    </p>
 
                 </aside>
 
@@ -492,13 +387,13 @@ function FoodDelivery({ onBack, onGoToCart }) {
 
                 <span>
 
-                    {
-                        isLoadingProducts
-                            ? '⏳ Loading...'
-                            : isFromServer
-                                ? '✅ Database connected'
-                                : '⚠️ Demo fallback'
-                    }
+                    {isLoadingProducts ? (
+                        <SkeletonStatus>Loading menus…</SkeletonStatus>
+                    ) : isFromServer ? (
+                        'Database connected'
+                    ) : (
+                        'Server offline'
+                    )}
 
                 </span>
 
@@ -506,50 +401,41 @@ function FoodDelivery({ onBack, onGoToCart }) {
 
             </div>
 
-            {/* MAP */}
+            {/* COVERAGE MAP — real partner locations from the database */}
             <section className="food-map-section">
 
                 <div className="food-map-copy">
 
-                    <span>Location marker</span>
+                    <span>Live coverage</span>
 
                     <h2>
-                        {selectedDistrict.hub}
+                        Restaurants in {districtName}
                     </h2>
 
                     <p>
-                        Delivery coverage around {selectedDistrict.district}. Use the landmark to identify the nearby service point quickly.
+                        Each contracted restaurant is shown at its actual location with its own {radiusKm ?? '…'} km delivery radius, centred on that restaurant.
                     </p>
-
-                    <div className="food-map-meta">
-
-                        <strong>
-                            Landmark: {landmark}
-                        </strong>
-
-                        <strong>
-                            Lat: {selectedDistrict.lat}
-                        </strong>
-
-                        <strong>
-                            Lng: {selectedDistrict.lon}
-                        </strong>
-
-                    </div>
 
                 </div>
 
                 <div className="food-map-frame">
 
-                    <div className="food-location-preview">
-                        <div className="food-location-pin">📍</div>
-                        <span>{selectedDistrict.district}</span>
-                        <h3>{selectedDistrict.hub}</h3>
-                        <p>{landmark}</p>
-                        <a href={mapLink} target="_blank" rel="noopener noreferrer">
-                            Open map
-                        </a>
-                    </div>
+                    <DeliveryMap
+                        lat={selectedDistrict?.lat}
+                        lon={selectedDistrict?.lon}
+                        serviceType="food"
+                        radiusKm={radiusKm}
+                        markers={restaurants.map((r) => ({
+                            id: r.id,
+                            name: r.name,
+                            lat: r.latitude,
+                            lon: r.longitude,
+                            rating: r.rating,
+                            address: r.location,
+                        }))}
+                        activeStoreId={selectedRestaurant?.id}
+                        onSelectMarker={(r) => setSelectedRestaurant(restaurants.find((x) => x.id === r.id) || null)}
+                    />
 
                 </div>
 
@@ -560,17 +446,19 @@ function FoodDelivery({ onBack, onGoToCart }) {
                 /* RESTAURANTS VIEW */
                 <section className="restaurant-container">
                     <div className="restaurant-section-header">
-                        <h2>Restaurants in {selectedDistrict.district}</h2>
-                        <p>Showing premium kitchens near {selectedDistrict.hub}</p>
+                        <h2>Restaurants in {districtName}</h2>
+                        <p>Showing contracted kitchens across {districtName}</p>
                     </div>
 
-                    {filteredRestaurants.length === 0 ? (
+                    {isLoadingProducts ? (
+                        <SkeletonGrid count={3} lines={3} className="restaurant-skeleton-grid" />
+                    ) : filteredRestaurants.length === 0 ? (
                         <div className="no-results">
                             <h3>No restaurants found matching your search.</h3>
                             <p>Try searching for a different kitchen name or location.</p>
                         </div>
                     ) : (
-                        <div className="restaurant-grid">
+                        <div className="restaurant-grid aw-reveal-stagger">
                             {filteredRestaurants.map((restaurant) => (
                                 <article
                                     key={restaurant.id}

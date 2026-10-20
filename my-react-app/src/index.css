@@ -814,3 +814,386 @@ body.dark-mode {
         font-size: 1.8rem;
     }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   ANYWHERE MOTION SYSTEM
+   Shared, lightweight animations used across Home + service pages.
+   All timings stay in the 150-400ms range; prefers-reduced-motion
+   disables them at the bottom of this block.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Scroll-triggered reveal ─────────────────────────────────── */
+/* Paired with hooks/useReveal.js, which adds .aw-reveal-in on intersect. */
+.aw-reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+        opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+
+.aw-reveal-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Staggered children (service grids, listing cards) */
+.aw-reveal-stagger > * {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: awSlideUp 0.36s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.aw-reveal-stagger > *:nth-child(1)  { animation-delay: 0.02s; }
+.aw-reveal-stagger > *:nth-child(2)  { animation-delay: 0.06s; }
+.aw-reveal-stagger > *:nth-child(3)  { animation-delay: 0.10s; }
+.aw-reveal-stagger > *:nth-child(4)  { animation-delay: 0.14s; }
+.aw-reveal-stagger > *:nth-child(5)  { animation-delay: 0.18s; }
+.aw-reveal-stagger > *:nth-child(6)  { animation-delay: 0.22s; }
+.aw-reveal-stagger > *:nth-child(n+7) { animation-delay: 0.26s; }
+
+@keyframes awSlideUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes awScaleIn {
+    from { opacity: 0; transform: scale(0.94); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes awFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── 2. Card hover lift ─────────────────────────────────────────── */
+/* Restaurant / store / pharmacy / food / grocery / medicine cards. */
+.restaurant-card-premium,
+.store-card-premium,
+.pharmacy-card-premium,
+.restaurant-card,
+.food-card,
+.grocery-card,
+.medicine-card {
+    transition:
+        transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.24s ease,
+        border-color 0.24s ease;
+    will-change: transform;
+}
+
+.restaurant-card-premium:hover,
+.store-card-premium:hover,
+.pharmacy-card-premium:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg, 0 14px 34px rgba(15, 23, 42, 0.14));
+}
+
+.restaurant-card-premium:active,
+.store-card-premium:active,
+.pharmacy-card-premium:active {
+    transform: translateY(-2px);
+    transition-duration: 0.1s;
+}
+
+/* ── 3. Button micro-interactions ───────────────────────────────── */
+/* Shared press + hover feel for every CTA across the app. */
+.food-back-btn,
+.grocery-back-btn,
+.medicine-back-btn,
+.courier-back-btn,
+.food-cart-pill,
+.grocery-cart-pill,
+.medicine-cart-pill,
+.food-category-row button,
+.grocery-category-row button,
+.medicine-category-row button,
+.food-card-bottom button,
+.grocery-card-bottom button,
+.medicine-card-bottom button,
+.checkout-btn,
+.medicine-prescription-btn,
+.back-to-restaurants-btn,
+.back-to-stores-btn,
+.back-to-pharmacies-btn,
+.service-open-btn,
+.courier-continue-btn,
+.continue-btn {
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        filter 0.18s ease,
+        background-color 0.18s ease;
+}
+
+.food-back-btn:hover,
+.grocery-back-btn:hover,
+.medicine-back-btn:hover,
+.courier-back-btn:hover,
+.food-cart-pill:hover,
+.grocery-cart-pill:hover,
+.medicine-cart-pill:hover,
+.food-category-row button:hover,
+.grocery-category-row button:hover,
+.medicine-category-row button:hover,
+.checkout-btn:hover,
+.medicine-prescription-btn:hover,
+.back-to-restaurants-btn:hover,
+.back-to-stores-btn:hover,
+.back-to-pharmacies-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.04);
+}
+
+.food-back-btn:active,
+.grocery-back-btn:active,
+.medicine-back-btn:active,
+.courier-back-btn:active,
+.food-cart-pill:active,
+.grocery-cart-pill:active,
+.medicine-cart-pill:active,
+.food-card-bottom button:active,
+.grocery-card-bottom button:active,
+.medicine-card-bottom button:active,
+.checkout-btn:active,
+.medicine-prescription-btn:active {
+    transform: translateY(0) scale(0.975);
+    transition-duration: 0.09s;
+}
+
+/* Disabled / out-of-stock buttons must not animate as if clickable */
+.out-of-stock-btn,
+button:disabled {
+    transform: none !important;
+    filter: none !important;
+    cursor: not-allowed;
+}
+
+/* ── 4. Add-to-cart feedback ────────────────────────────────────── */
+@keyframes awCartPop {
+    0%   { transform: scale(1); }
+    45%  { transform: scale(1.14); }
+    100% { transform: scale(1); }
+}
+
+.aw-cart-pop {
+    animation: awCartPop 0.26s ease;
+}
+
+/* ── 5. Map container + markers ──────────────────────────────────── */
+.food-map-frame,
+.grocery-map-frame,
+.medicine-map-frame,
+.delivery-map,
+.courier-map-wrap {
+    animation: awFadeIn 0.34s ease both;
+}
+
+.leaflet-marker-icon {
+    animation: awMarkerIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-origin: center bottom;
+}
+
+@keyframes awMarkerIn {
+    from { opacity: 0; transform: scale(0.6) translateY(6px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── 6. Skeleton loaders (replace plain "Loading...") ────────────── */
+.aw-skeleton {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--card-strong, #f1f5f9);
+}
+
+.aw-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.65) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: awShimmer 1.25s ease-in-out infinite;
+}
+
+@keyframes awShimmer {
+    100% { transform: translateX(100%); }
+}
+
+.aw-skeleton-line { height: 12px; margin-bottom: 8px; }
+.aw-skeleton-line.short { width: 55%; }
+.aw-skeleton-line.medium { width: 78%; }
+.aw-skeleton-block {
+    height: 190px;
+    border-radius: 18px;
+    margin-bottom: 12px;
+}
+
+.aw-skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    width: min(1180px, calc(100% - 48px));
+    margin: 32px auto;
+}
+
+.aw-skeleton-card {
+    padding: 18px;
+    border-radius: 20px;
+    background: var(--card, #fff);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.aw-skeleton-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted, #64748b);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.aw-skeleton-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--brand-yellow, #ffd700);
+    border-top-color: transparent;
+    animation: awSpin 0.7s linear infinite;
+}
+
+@keyframes awSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── 7. Form fields ─────────────────────────────────────────────── */
+.aw-field,
+.food-search-panel input,
+.food-search-panel select,
+.grocery-search-panel input,
+.grocery-search-panel select,
+.medicine-search-field input,
+.medicine-search-select {
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        background-color 0.18s ease;
+}
+
+.aw-field:focus,
+.food-search-panel input:focus,
+.grocery-search-panel input:focus,
+.medicine-search-field input:focus {
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+}
+
+/* ── 8. Dropdown / suggestion list ──────────────────────────────── */
+@keyframes awDropDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.address-suggestion-list,
+.aw-dropdown {
+    animation: awDropDown 0.2s ease both;
+}
+
+/* ── 9. AI assistant ─────────────────────────────────────────────── */
+@keyframes awAiOpen {
+    from { opacity: 0; transform: translateY(14px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ai-chat-window.aw-open {
+    animation: awAiOpen 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes awMessageIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.ai-message {
+    animation: awMessageIn 0.24s ease both;
+}
+
+/* ── 10. Footer links ───────────────────────────────────────────── */
+.ft-links a,
+.footer-links a {
+    transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.ft-links a:hover,
+.footer-links a:hover {
+    color: var(--brand-yellow, #ffd700);
+    transform: translateX(3px);
+}
+
+/* ── Reduced motion: disable all of the above ───────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .aw-reveal,
+    .aw-reveal-in {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+
+    .aw-reveal-stagger > *,
+    .leaflet-marker-icon,
+    .food-map-frame,
+    .grocery-map-frame,
+    .medicine-map-frame,
+    .delivery-map,
+    .courier-map-wrap,
+    .address-suggestion-list,
+    .aw-dropdown,
+    .ai-chat-window.aw-open,
+    .ai-message {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .aw-skeleton::after {
+        animation: none !important;
+    }
+
+    .aw-skeleton-dot {
+        animation-duration: 2s !important;
+    }
+
+    .restaurant-card-premium,
+    .store-card-premium,
+    .pharmacy-card-premium,
+    .restaurant-card,
+    .food-card,
+    .grocery-card,
+    .medicine-card,
+    .food-back-btn,
+    .grocery-back-btn,
+    .medicine-back-btn,
+    .courier-back-btn,
+    .checkout-btn,
+    .ft-links a,
+    .footer-links a {
+        transition-duration: 0.01ms !important;
+    }
+
+    .restaurant-card-premium:hover,
+    .store-card-premium:hover,
+    .pharmacy-card-premium:hover,
+    .food-back-btn:hover,
+    .grocery-back-btn:hover,
+    .medicine-back-btn:hover,
+    .courier-back-btn:hover,
+    .checkout-btn:hover {
+        transform: none !important;
+    }
+}

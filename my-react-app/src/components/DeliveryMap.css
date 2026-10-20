@@ -1,0 +1,332 @@
+/* ============================================================
+   DeliveryMap.css — Swiggy/Zomato style modern map component
+   ============================================================ */
+
+.dm-wrapper {
+    position: relative;
+    width: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 2px solid rgba(245, 158, 11, 0.2);
+    background: #ffffff;
+}
+
+.dm-container {
+    width: 100%;
+    background: #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Floating Live Overlay Pill */
+.dm-overlay-pill {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(17, 24, 39, 0.88);
+    backdrop-filter: blur(8px);
+    color: #ffffff;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+}
+
+.dm-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: dm-blink 1.5s infinite;
+}
+
+@keyframes dm-blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Central Hub Beacon Marker */
+.dm-hub-icon {
+    background: transparent !important;
+    border: 0 !important;
+}
+
+.dm-hub-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--dm-color, #fc8019);
+    opacity: 0.25;
+    animation: dm-pulse 2.2s ease-in-out infinite;
+}
+
+.dm-hub-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    z-index: 2;
+}
+
+@keyframes dm-pulse {
+    0%   { transform: translate(-50%, -50%) scale(0.9); opacity: 0.35; }
+    50%  { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.35; }
+}
+
+/* Shop / Restaurant / Pharmacy Floating Card Pins (Swiggy / Zomato style) */
+.dm-shop-icon {
+    background: transparent !important;
+    border: 0 !important;
+    /* Marker fade+scale-in on load — pairs with awScaleIn in index.css */
+    animation: dmMarkerIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes dmMarkerIn {
+    from { opacity: 0; transform: scale(0.5) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Stagger markers when multiple load together */
+.dm-shop-icon:nth-child(2) { animation-delay: 0.07s; }
+.dm-shop-icon:nth-child(3) { animation-delay: 0.14s; }
+.dm-shop-icon:nth-child(n+4) { animation-delay: 0.21s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .dm-shop-icon { animation: none; opacity: 1; }
+}
+
+.dm-shop-card {
+    display: inline-flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 999px;
+    padding: 3px 10px 3px 3px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    border: 2px solid var(--dm-color, #fc8019);
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    white-space: nowrap;
+}
+
+.dm-shop-card:hover,
+.dm-shop-selected .dm-shop-card {
+    transform: scale(1.08) translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+.dm-shop-pin-head {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--dm-color, #fc8019);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 900;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+
+.dm-shop-emoji {
+    font-size: 12px;
+    display: none;
+}
+
+.dm-shop-label-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dm-shop-label-chip strong {
+    font-size: 11px;
+    font-weight: 700;
+    color: #111827;
+    font-family: 'Poppins', sans-serif;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dm-rating-badge {
+    background: #15803d;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Modern Swiggy/Zomato Style Popup */
+.dm-popup {
+    font-family: 'Poppins', sans-serif;
+    padding: 6px 2px 2px 2px;
+    min-width: 170px;
+}
+
+.dm-popup .dm-popup-badge {
+    display: inline-block;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 2px 10px;
+    border-radius: 999px;
+    margin-bottom: 6px;
+    letter-spacing: 0.4px;
+}
+
+.dm-popup strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 4px;
+    line-height: 1.25;
+}
+
+.dm-popup small {
+    font-size: 11px;
+    color: #6b7280;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.dm-popup-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 6px;
+    margin-top: 4px;
+}
+
+.dm-popup-rating {
+    color: #15803d;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.dm-popup-status {
+    color: #059669;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* Leaflet UI Overrides */
+.dm-container .leaflet-control-zoom {
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+
+.dm-container .leaflet-control-zoom a {
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    color: #111827 !important;
+    background: #ffffff !important;
+    transition: background 0.15s ease;
+}
+
+.dm-container .leaflet-control-zoom a:hover {
+    background: #f9fafb !important;
+}
+
+.dm-container .leaflet-popup-content-wrapper {
+    border-radius: 14px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+    padding: 6px !important;
+}
+
+.dm-container .leaflet-popup-tip {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dm-container .leaflet-control-attribution {
+    font-size: 9px !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-radius: 6px 0 0 0 !important;
+    padding: 2px 8px !important;
+}
+/* Enhanced delivery radius circle */
+.delivery-radius-circle {
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+    animation: radius-pulse 3s ease-in-out infinite;
+}
+
+@keyframes radius-pulse {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 0.6; }
+}
+
+/* Improved map tile clarity */
+.dm-container .leaflet-tile {
+    filter: contrast(1.05) saturate(1.1);
+}
+
+/* Enhanced shop markers */
+.dm-shop-card {
+    display: inline-flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 999px;
+    padding: 3px 10px 3px 3px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--dm-color, #fc8019);
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    white-space: nowrap;
+    position: relative;
+}
+
+.dm-shop-card::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 999px;
+    background: linear-gradient(45deg, var(--dm-color, #fc8019), transparent);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.dm-shop-card:hover::before,
+.dm-shop-selected .dm-shop-card::before {
+    opacity: 0.2;
+}

@@ -1,0 +1,515 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADDRESS AUTOCOMPLETE COMPONENT - NOMINATIM INTEGRATION
+   Tamil Nadu only, two-line suggestions with pin icon + match highlight
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.address-autocomplete {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text, #333);
+}
+
+.address-autocomplete-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.address-autocomplete-control input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 16px;
+    border: 1px solid var(--border-normal, #ccc);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+    background: var(--card, #fff);
+    color: var(--text, #333);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.address-autocomplete-control input:focus {
+    border-color: var(--brand-yellow, #FFD700);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.15);
+}
+
+.address-autocomplete-control input::placeholder {
+    color: var(--muted, #999);
+}
+
+/* Clear button */
+.address-clear-btn {
+    padding: 8px 12px;
+    border: 1px solid var(--border-normal, #ddd);
+    border-radius: 6px;
+    background: var(--bg-1, #f5f5f5);
+    color: var(--muted, #666);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.address-clear-btn:hover {
+    background: #e8e8e8;
+    border-color: #999;
+    color: var(--text, #333);
+}
+
+/* Use My Location button */
+.address-geo-btn {
+    padding: 8px 12px;
+    border: 1px solid var(--accent, #f59e0b);
+    border-radius: 6px;
+    background: rgba(245, 158, 11, 0.08);
+    color: var(--accent, #d97706);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.address-geo-btn:hover:not(:disabled) {
+    background: rgba(245, 158, 11, 0.18);
+    border-color: var(--accent, #d97706);
+}
+
+.address-geo-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* In-field loading spinner */
+.address-spinner {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 215, 0, 0.35);
+    border-top-color: var(--brand-yellow, #FFD700);
+    border-radius: 50%;
+    animation: address-spin 0.7s linear infinite;
+}
+
+@keyframes address-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Error message */
+.address-error {
+    display: block;
+    font-size: 0.85rem;
+    color: #d32f2f;
+    font-weight: 500;
+}
+
+.address-info {
+    display: block;
+    font-size: 0.82rem;
+    color: #1565c0;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* Empty-state message (Tamil Nadu restriction) */
+.address-empty {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted, #6b7280);
+    font-weight: 500;
+    font-style: italic;
+}
+
+/* Suggestions dropdown */
+.address-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    margin-top: 6px;
+    border: var(--border-normal, 1px solid #ddd);
+    border-radius: 12px;
+    background: var(--card, #fff);
+    box-shadow: 0 12px 30px rgba(31, 41, 55, 0.14);
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 6px;
+    color: var(--text, #333);
+}
+
+/* Single suggestion row: pin + two lines */
+.address-suggestion-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    padding: 11px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.address-suggestion-row:hover {
+    background: var(--bg-1, #f5f5f5);
+}
+
+.address-suggestion-row:active {
+    background: var(--bg-2, #e8e8e8);
+}
+
+.address-pin {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--accent-1, #f59e0b);
+    margin-top: 2px;
+}
+
+.address-suggestion-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.address-suggestion-title {
+    font-size: 0.96rem;
+    font-weight: 700;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    color: var(--text, #1f2937);
+}
+
+.address-suggestion-sub {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--muted, #6b7280);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+/* Highlighted search match inside a suggestion */
+.address-match {
+    color: var(--accent-1, #f59e0b);
+    font-weight: 800;
+    background: rgba(255, 215, 0, 0.18);
+    border-radius: 3px;
+    padding: 0 1px;
+}
+
+/* Suggestions header */
+.address-suggestions-header {
+    padding: 8px 12px 4px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted, #6b7280);
+}
+
+/* Scrollbar styling */
+.address-suggestions::-webkit-scrollbar {
+    width: 6px;
+}
+
+.address-suggestions::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.address-suggestions::-webkit-scrollbar-thumb {
+    background: var(--muted, #ccc);
+    border-radius: 3px;
+}
+
+.address-suggestions::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* Dark theme surfaces */
+body.dark-mode .address-autocomplete-control input {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: var(--text, #e2e8f0);
+}
+
+body.dark-mode .address-autocomplete-control input:focus {
+    border-color: var(--brand-yellow, #FFD700);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.18);
+}
+
+body.dark-mode .address-clear-btn {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: var(--muted, #9aa7bd);
+}
+
+body.dark-mode .address-clear-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--text, #e2e8f0);
+}
+
+body.dark-mode .address-suggestions {
+    background: #0f172a;
+    border-color: rgba(148, 163, 184, 0.18);
+    box-shadow: 0 16px 36px rgba(8, 15, 35, 0.6);
+}
+
+body.dark-mode .address-suggestion-row:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .address-suggestion-row:active {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+body.dark-mode .address-pin {
+    background: rgba(255, 122, 89, 0.16);
+    color: var(--accent-1, #ff7a59);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DRAGGABLE PIN MAP (after Use My Location)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.addr-confirm-map-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+    animation: addrMapFadeIn 0.35s ease-out;
+}
+
+@keyframes addrMapFadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.addr-confirm-map {
+    flex: 1;
+    min-height: 200px;
+    z-index: 1;
+}
+
+.addr-confirm-map-hint {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-align: center;
+}
+
+.addr-confirm-map-btn {
+    align-self: center;
+    padding: 9px 24px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent, #f59e0b);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.addr-confirm-map-btn:hover {
+    background: #d97706;
+    transform: translateY(-1px);
+}
+
+/* Leaflet draggable marker pulse */
+.addr-confirm-map .leaflet-marker-draggable {
+    cursor: grab !important;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+}
+
+.addr-confirm-map .leaflet-marker-draggable:active {
+    cursor: grabbing !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TASK 1: SHIMMER ROWS, ERROR/RETRY, TYPING HINT, EMPTY STATE & KEYBOARD ACTIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.address-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    opacity: 0.75;
+    margin-bottom: 2px;
+}
+
+.address-suggestion-row.active {
+    background: var(--bg-1, #fefce8);
+    outline: none;
+    border-radius: 8px;
+}
+
+body.dark-mode .address-suggestion-row.active {
+    background: rgba(255, 215, 0, 0.15);
+}
+
+.address-local-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 7px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(22, 163, 74, 0.15);
+    color: #16a34a;
+    border-radius: 999px;
+    vertical-align: middle;
+}
+
+body.dark-mode .address-local-badge {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+/* 1. Typing hint */
+.address-hint-row {
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    color: var(--muted, #6b7280);
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 2. Shimmer rows */
+.address-shimmer-container {
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.address-shimmer-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+}
+
+.shimmer-pin {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer-pulse 1.4s infinite ease-in-out;
+    flex-shrink: 0;
+}
+
+.shimmer-lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.shimmer-line {
+    height: 12px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer-pulse 1.4s infinite ease-in-out;
+}
+
+.shimmer-line.short { width: 50%; }
+.shimmer-line.long { width: 85%; }
+
+body.dark-mode .shimmer-pin,
+body.dark-mode .shimmer-line {
+    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+    background-size: 200% 100%;
+}
+
+@keyframes shimmer-pulse {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shimmer-pin, .shimmer-line {
+        animation: none;
+        opacity: 0.6;
+    }
+}
+
+/* 3. Error row with retry */
+.address-error-row {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: rgba(239, 68, 68, 0.08);
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+body.dark-mode .address-error-row {
+    background: rgba(239, 68, 68, 0.16);
+    color: #f87171;
+}
+
+.address-retry-btn {
+    padding: 6px 14px;
+    border: 1px solid currentColor;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.address-retry-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    transform: translateY(-1px);
+}
+
+/* 4. Empty state row */
+.address-empty-row {
+    padding: 16px 14px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--muted, #6b7280);
+    line-height: 1.5;
+    background: var(--bg-1, #fefce8);
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+body.dark-mode .address-empty-row {
+    background: rgba(255, 255, 255, 0.04);
+}

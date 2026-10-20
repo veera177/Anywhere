@@ -1,6 +1,6 @@
 import "./Payment.css";
 
-function PaymentSuccess({ result, onTrackOrder, onHistory, onHome }) {
+function PaymentSuccess({ result, onTrackOrder, onHistory, onHome, onOrders }) {
     const order = result?.order;
     const payment = result?.payment;
 
@@ -42,6 +42,7 @@ function PaymentSuccess({ result, onTrackOrder, onHistory, onHome }) {
                     <button onClick={() => onTrackOrder(order?.id)}>Track Order</button>
                     <button onClick={downloadInvoice}>Download Invoice</button>
                     <button onClick={onHistory}>Payment History</button>
+                    {onOrders && <button onClick={onOrders}>My Orders</button>}
                     <button onClick={onHome}>Home</button>
                 </div>
             </section>

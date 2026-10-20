@@ -1,0 +1,643 @@
+/* ═══════════════════════════════════════════════════
+   NewUserNotice — themed with project yellow/black palette
+   ═══════════════════════════════════════════════════ */
+
+/* ── Keyframes ── */
+@keyframes nwn-overlay-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes nwn-card-in {
+    from { opacity: 0; transform: translateY(28px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+@keyframes nwn-slide-in {
+    from { opacity: 0; transform: translateX(18px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes nwn-slide-out {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(-18px); }
+}
+
+@keyframes nwn-core-pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1);    box-shadow: 0 0 0 10px rgba(255,215,0,0.18), 0 0 40px rgba(255,215,0,0.4); }
+    50%       { transform: translate(-50%, -50%) scale(1.07); box-shadow: 0 0 0 18px rgba(255,215,0,0.10), 0 0 64px rgba(255,215,0,0.5); }
+}
+
+@keyframes nwn-ring-expand {
+    0%   { transform: translate(-50%,-50%) scale(1);   opacity: 0.5; }
+    100% { transform: translate(-50%,-50%) scale(2.4); opacity: 0; }
+}
+
+@keyframes nwn-node-float {
+    0%, 100% { transform: translateY(0)    scale(1); }
+    50%       { transform: translateY(-8px) scale(1.05); }
+}
+
+@keyframes nwn-orbit-spin {
+    from { transform: translate(-50%,-50%) rotate(0deg); }
+    to   { transform: translate(-50%,-50%) rotate(360deg); }
+}
+
+@keyframes nwn-dot-expand {
+    from { width: 8px; }
+    to   { width: 28px; }
+}
+
+@keyframes nwn-shimmer {
+    from { left: -80%; }
+    to   { left: 200%; }
+}
+
+@keyframes nwn-fees-open {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes nwn-badge-in {
+    from { opacity: 0; transform: scale(0.7); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Overlay ── */
+.nwn-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(10, 10, 20, 0.72);
+    backdrop-filter: blur(12px);
+    animation: nwn-overlay-in 0.3s ease both;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ── Card ── */
+.nwn-card {
+    position: relative;
+    width: min(980px, 100%);
+    max-height: 92vh;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-radius: 24px;
+    background: #ffffff;
+    border: 1.5px solid rgba(245, 158, 11, 0.3);
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255,215,0,0.1);
+    animation: nwn-card-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+    overflow: hidden;
+}
+
+/* Scrollbar styling */
+.nwn-card::-webkit-scrollbar { width: 4px; }
+.nwn-card::-webkit-scrollbar-thumb { background: rgba(245,158,11,0.3); border-radius: 4px; }
+
+/* ── Close button ── */
+.nwn-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 10;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(17,24,39,0.15);
+    background: rgba(255,255,255,0.9);
+    color: #374151;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: background 0.2s, transform 0.2s;
+    backdrop-filter: blur(6px);
+}
+.nwn-close:hover {
+    background: #FFD700;
+    color: #111827;
+    transform: rotate(90deg) scale(1.1);
+}
+
+/* ════════════════════════════
+   LEFT PANEL
+   ════════════════════════════ */
+.nwn-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 40px 32px 32px;
+    background:
+        radial-gradient(ellipse at 30% 20%, rgba(255,215,0,0.18) 0%, transparent 55%),
+        linear-gradient(160deg, #1a1a2e 0%, #111827 60%, #1f2937 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Grid texture overlay */
+.nwn-left::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        repeating-linear-gradient(0deg, transparent 0 38px, rgba(255,255,255,0.025) 38px 39px),
+        repeating-linear-gradient(90deg, transparent 0 38px, rgba(255,255,255,0.025) 38px 39px);
+    pointer-events: none;
+}
+
+/* ── Globe / visual ── */
+.nwn-globe {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    flex-shrink: 0;
+}
+
+/* Centre core */
+.nwn-core {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: #FFD700;
+    transform: translate(-50%, -50%);
+    display: grid;
+    place-items: center;
+    animation: nwn-core-pulse 2.8s ease-in-out infinite;
+    z-index: 3;
+}
+
+.nwn-logo-text {
+    font-size: 0.68rem;
+    font-weight: 900;
+    color: #111827;
+    letter-spacing: 0.5px;
+    text-align: center;
+    line-height: 1.2;
+    z-index: 1;
+    position: relative;
+}
+
+/* Expanding rings */
+.nwn-core-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 215, 0, 0.6);
+    pointer-events: none;
+}
+
+.nwn-ring-1 { width: 84px;  height: 84px;  animation: nwn-ring-expand 2.8s ease-out 0s   infinite; }
+.nwn-ring-2 { width: 84px;  height: 84px;  animation: nwn-ring-expand 2.8s ease-out 0.9s infinite; }
+.nwn-ring-3 { width: 84px;  height: 84px;  animation: nwn-ring-expand 2.8s ease-out 1.8s infinite; }
+
+/* Orbiting dashed rings */
+.nwn-orbit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    border-style: dashed;
+    border-color: rgba(255,255,255,0.12);
+    pointer-events: none;
+}
+
+.nwn-orbit-1 {
+    width: 160px;
+    height: 160px;
+    border-width: 1px;
+    animation: nwn-orbit-spin 12s linear infinite;
+}
+
+.nwn-orbit-2 {
+    width: 200px;
+    height: 200px;
+    border-width: 1px;
+    border-color: rgba(255,215,0,0.1);
+    animation: nwn-orbit-spin 20s linear infinite reverse;
+}
+
+/* Partner nodes */
+.nwn-node {
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    display: grid;
+    place-items: center;
+    font-size: 1.1rem;
+    backdrop-filter: blur(4px);
+    z-index: 4;
+    animation: nwn-node-float 3.2s ease-in-out infinite;
+}
+
+.nwn-node--food    { top: 4%;  left: 34%; animation-delay: 0s; }
+.nwn-node--grocery { top: 34%; right: 0%; animation-delay: 0.4s; }
+.nwn-node--med     { bottom: 4%; left: 34%; animation-delay: 0.8s; }
+.nwn-node--courier { top: 34%; left: 0%;   animation-delay: 1.2s; }
+
+/* ── Slide body ── */
+.nwn-slide-body {
+    text-align: center;
+    color: #f1f5f9;
+    padding: 0 8px;
+}
+
+.nwn-slide-body.nwn-slide--in  { animation: nwn-slide-in  0.3s ease both; }
+.nwn-slide-body.nwn-slide--out { animation: nwn-slide-out 0.28s ease both; }
+
+.nwn-slide-icon {
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.nwn-slide-label {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #FFD700;
+    background: rgba(255,215,0,0.12);
+    border: 1px solid rgba(255,215,0,0.3);
+    padding: 3px 10px;
+    border-radius: 99px;
+    margin-bottom: 10px;
+    animation: nwn-badge-in 0.3s ease both;
+}
+
+.nwn-slide-title {
+    font-size: clamp(1rem, 2.2vw, 1.25rem);
+    font-weight: 800;
+    color: #f9fafb;
+    margin: 0 0 8px;
+    line-height: 1.3;
+}
+
+.nwn-slide-text {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    line-height: 1.7;
+    margin: 0;
+    min-height: 70px;
+}
+
+/* ── Dot navigation ── */
+.nwn-dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.nwn-dot {
+    height: 8px;
+    width: 8px;
+    border: none;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.2);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.25s ease, width 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.nwn-dot--active {
+    background: #FFD700;
+    animation: nwn-dot-expand 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    width: 28px;
+}
+
+/* ════════════════════════════
+   RIGHT PANEL
+   ════════════════════════════ */
+.nwn-right {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 36px 32px 32px;
+    background:
+        radial-gradient(ellipse at 80% 10%, rgba(255,215,0,0.12) 0%, transparent 50%),
+        #ffffff;
+    overflow-y: auto;
+    max-height: 92vh;
+}
+
+.nwn-right::-webkit-scrollbar { width: 3px; }
+.nwn-right::-webkit-scrollbar-thumb { background: rgba(245,158,11,0.25); border-radius: 3px; }
+
+/* Eyebrow badge */
+.nwn-eyebrow {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 5px 12px;
+    border-radius: 99px;
+    background: #111827;
+    color: #FFD700;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    animation: nwn-badge-in 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+}
+
+.nwn-section-title {
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    font-weight: 800;
+    color: #111827;
+    margin: 0;
+    line-height: 1.25;
+}
+
+/* Triangle map */
+.nwn-triangle-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 14px;
+    border: 1px dashed rgba(245,158,11,0.3);
+}
+
+.nwn-triangle {
+    width: 130px;
+    height: 130px;
+}
+
+/* Body text */
+.nwn-body-text {
+    font-size: 0.88rem;
+    color: #4b5563;
+    line-height: 1.7;
+    margin: 0;
+}
+
+.nwn-body-text strong {
+    color: #111827;
+}
+
+/* Range pills */
+.nwn-range-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.nwn-pill {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 99px;
+    border: 1.5px solid;
+}
+
+.nwn-pill--food    { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.4); color: #92400e; }
+.nwn-pill--med     { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.3); color: #1e40af; }
+.nwn-pill--courier { background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.3); color: #4c1d95; }
+
+/* Steps */
+.nwn-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.nwn-step {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+    background: #fef9c3;
+    border-radius: 12px;
+    border: 1px solid rgba(245,158,11,0.2);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+    line-height: 1.4;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nwn-step:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(245,158,11,0.15);
+}
+
+.nwn-step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #FFD700;
+    color: #111827;
+    font-size: 0.8rem;
+    font-weight: 900;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+/* ── Delivery Fees toggle ── */
+.nwn-fees-toggle {
+    align-self: flex-start;
+    background: transparent;
+    border: 1.5px solid rgba(245,158,11,0.4);
+    border-radius: 8px;
+    color: #92400e;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.nwn-fees-toggle:hover {
+    background: #FFD700;
+    color: #111827;
+    transform: translateY(-1px);
+}
+
+/* ── Fees panel ── */
+.nwn-fees-panel {
+    animation: nwn-fees-open 0.28s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+.nwn-fees-note {
+    font-size: 0.8rem;
+    color: #4b5563;
+    line-height: 1.6;
+    margin: 0 0 10px;
+    padding: 10px 12px;
+    background: rgba(255,215,0,0.08);
+    border-radius: 8px;
+    border-left: 3px solid #FFD700;
+}
+
+.nwn-fees-note strong { color: #111827; }
+
+.nwn-fees-table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid rgba(245,158,11,0.2);
+}
+
+.nwn-fees-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+    font-family: 'Poppins', sans-serif;
+}
+
+.nwn-fees-table thead tr {
+    background: #111827;
+    color: #FFD700;
+}
+
+.nwn-fees-table th {
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.nwn-fees-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(245,158,11,0.1);
+    color: #374151;
+    white-space: nowrap;
+}
+
+.nwn-fees-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.nwn-fees-table tbody tr:nth-child(even) td {
+    background: rgba(255,215,0,0.04);
+}
+
+.nwn-fees-table tbody tr:hover td {
+    background: rgba(255,215,0,0.1);
+}
+
+/* ── Primary CTA button ── */
+.nwn-primary {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 24px;
+    border: none;
+    border-radius: 12px;
+    background: #111827;
+    color: #FFD700;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(17,24,39,0.25);
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
+    margin-top: auto;
+}
+
+.nwn-primary:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 16px 36px rgba(17,24,39,0.3);
+}
+
+.nwn-primary:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.nwn-btn-arrow {
+    font-size: 1.1rem;
+    transition: transform 0.25s ease;
+}
+
+.nwn-primary:hover .nwn-btn-arrow {
+    transform: translateX(5px);
+}
+
+.nwn-btn-shimmer {
+    position: absolute;
+    top: 0;
+    left: -80%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,215,0,0.25), transparent);
+    pointer-events: none;
+}
+
+.nwn-primary:hover .nwn-btn-shimmer {
+    animation: nwn-shimmer 0.55s ease forwards;
+}
+
+/* ════════════════════════════
+   RESPONSIVE
+   ════════════════════════════ */
+@media (max-width: 760px) {
+    .nwn-card {
+        grid-template-columns: 1fr;
+        max-height: 96vh;
+        overflow-y: auto;
+    }
+
+    .nwn-left {
+        padding: 32px 24px 24px;
+    }
+
+    .nwn-globe {
+        width: 160px;
+        height: 160px;
+    }
+
+    .nwn-right {
+        padding: 28px 20px 24px;
+        max-height: none;
+    }
+
+    .nwn-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .nwn-fees-toggle {
+        align-self: stretch;
+        text-align: center;
+    }
+
+    .nwn-primary {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .nwn-overlay {
+        padding: 12px;
+    }
+
+    .nwn-card {
+        border-radius: 18px;
+    }
+
+    .nwn-section-title {
+        font-size: 1.1rem;
+    }
+
+    .nwn-range-pills {
+        flex-direction: column;
+    }
+}

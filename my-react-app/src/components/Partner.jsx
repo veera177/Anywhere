@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import './Partner.css';
+import { getDistricts } from '../services/districts';
 
 const benefits = [
     {
@@ -83,6 +84,19 @@ function Partner() {
     const [stepsVisible, setStepsVisible] = useState(false);
     const sectionRef = useRef();
     const stepsRef = useRef();
+    const [coverage, setCoverage] = useState({ districts: null, partners: null });
+
+    useEffect(() => {
+        let active = true;
+        getDistricts().then((districts) => {
+            if (!active || !Array.isArray(districts)) return;
+            setCoverage({
+                districts: districts.length,
+                partners: districts.reduce((sum, district) => sum + Number(district.partnerCount || 0), 0),
+            });
+        });
+        return () => { active = false; };
+    }, []);
 
     useEffect(() => {
         const obs1 = new IntersectionObserver(
@@ -110,8 +124,8 @@ function Partner() {
                         <em>We Handle the Rest.</em>
                     </h2>
                     <p className="partner-hero-sub">
-                        Join 500+ thriving local businesses already using Anywhere to double their
-                        revenue without doubling their effort. No logistics. No headaches. Just growth.
+                        Join local businesses serving customers through Anywhere. Your shop is shown
+                        only in service areas supported by active local partners.
                     </p>
                     <div className="partner-hero-actions">
                         <a href="tel:9876543210" className="partner-btn-primary">
@@ -127,20 +141,20 @@ function Partner() {
                 {/* ── Decorative black & white stat block ── */}
                 <div className="partner-hero-stats">
                     <div className="phs-card phs-dark">
-                        <strong>500+</strong>
-                        <span>Active Partners</span>
+                        <strong>{coverage.partners === null ? '—' : coverage.partners.toLocaleString()}</strong>
+                        <span>Active Local Partners</span>
                     </div>
                     <div className="phs-card phs-light">
-                        <strong>₹2 Cr+</strong>
-                        <span>Partner Revenue Generated</span>
+                        <strong>{coverage.districts === null ? '—' : coverage.districts}</strong>
+                        <span>Districts with Active Partners</span>
                     </div>
                     <div className="phs-card phs-light">
-                        <strong>24 hrs</strong>
-                        <span>Onboarding Time</span>
+                        <strong>4</strong>
+                        <span>Local Services</span>
                     </div>
                     <div className="phs-card phs-dark">
-                        <strong>0 ₹</strong>
-                        <span>Setup Fee</span>
+                        <strong>Local</strong>
+                        <span>Partner-first Network</span>
                     </div>
                 </div>
             </div>

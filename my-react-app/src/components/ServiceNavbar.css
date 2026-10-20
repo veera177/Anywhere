@@ -1,0 +1,137 @@
+/* ── Service Navbar (Minimal, Compact, Yellow like Home Page) ── */
+.service-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  min-height: 60px;
+  padding: 10px clamp(24px, 4vw, 64px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #ffd400;
+  border-bottom: 1px solid rgba(20, 24, 22, 0.12);
+  box-shadow: 0 4px 16px rgba(31, 41, 55, 0.12);
+  color: #151a18;
+  font-family: "Poppins", sans-serif;
+  width: 100%;
+  left: 0;
+  right: 0;
+}
+
+.service-navbar-left {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.service-back-btn {
+  background: rgba(20, 24, 22, 0.1);
+  color: #151a18;
+  border: 1px solid rgba(20, 24, 22, 0.15);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Poppins", sans-serif;
+  letter-spacing: 0.3px;
+}
+
+.service-back-btn:hover {
+  background: rgba(20, 24, 22, 0.15);
+  transform: translateY(-1px);
+}
+
+.service-back-btn:active {
+  transform: translateY(0);
+}
+
+.service-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Service Cart Badge ── */
+.service-cart-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 24, 22, 0.1);
+  border: 1px solid rgba(20, 24, 22, 0.15);
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #151a18;
+  font-weight: 700;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  font-family: "Poppins", sans-serif;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.service-cart-badge:hover {
+  background: rgba(20, 24, 22, 0.15);
+  transform: translateY(-1px);
+}
+
+/* ── Responsive Tablet ── */
+@media (max-width: 768px) {
+  .service-navbar {
+    min-height: 56px;
+    padding: 9px 18px;
+    gap: 12px;
+  }
+
+  .service-back-btn {
+    padding: 7px 11px;
+    font-size: 0.75rem;
+  }
+
+  .service-cart-badge {
+    padding: 7px 10px;
+    font-size: 0.75rem;
+  }
+}
+
+/* ── Responsive Mobile ── */
+@media (max-width: 600px) {
+  .service-navbar {
+    min-height: 52px;
+    padding: 8px 14px;
+    gap: 10px;
+  }
+
+  .service-back-btn {
+    padding: 6px 9px;
+    font-size: 0.7rem;
+  }
+
+  .service-cart-badge {
+    padding: 6px 8px;
+    font-size: 0.7rem;
+  }
+}
+
+/* ── Responsive Small Mobile ── */
+@media (max-width: 480px) {
+  .service-navbar {
+    min-height: 50px;
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .service-back-btn {
+    padding: 5px 8px;
+    font-size: 0.65rem;
+  }
+
+  .service-cart-badge {
+    padding: 5px 7px;
+    font-size: 0.65rem;
+  }
+}
+

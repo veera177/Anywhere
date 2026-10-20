@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import "./UserProfile.css";
+import { getDistricts } from "../../services/districts";
+import { USERS_BASE } from "../../services/apiConfig";
+import { apiFetchJson } from "../../services/apiClient";
 
-const API_BASE_URL = "http://localhost:8080/api/users";
+const API_BASE_URL = USERS_BASE;
 
 const emptyProfile = {
     id: "",
@@ -37,6 +40,17 @@ function UserProfile({ onBack }) {
     const [loading, setLoading] = useState(Boolean(storedUser?.id));
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState("");
+    // Districts come from the database so the saved value always matches a real
+    // service area and drives Food/Grocery/Medicine/Courier automatically.
+    const [districts, setDistricts] = useState([]);
+
+    useEffect(() => {
+        let cancelled = false;
+        getDistricts().then((list) => {
+            if (!cancelled) setDistricts(Array.isArray(list) ? list : []);
+        });
+        return () => { cancelled = true; };
+    }, []);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -138,6 +152,13 @@ function UserProfile({ onBack }) {
         profile.district,
     ].filter(Boolean).join(", ");
 
+    // Older profiles stored the district code (e.g. "salem"); the dropdown uses
+    // the display name, so resolve either form to the matching option.
+    const matchingDistrict = districts.find(
+        (d) => d.id === formData.district || d.name === formData.district
+    );
+    const districtSelectValue = matchingDistrict?.name ?? formData.district ?? "";
+
     return (
         <section className="profile-page">
             <nav className="profile-nav">
@@ -160,6 +181,11 @@ function UserProfile({ onBack }) {
                     <p>
                         Manage your contact details and primary address so Anywhere can serve both city streets and village routes clearly.
                     </p>
+
+                    <div className="profile-address-card">
+                        <span>Active service district</span>
+                        <strong>{profile.district || "Not set yet"}</strong>
+                    </div>
 
                     <div className="profile-address-card">
                         <span>Primary address</span>
@@ -302,14 +328,24 @@ function UserProfile({ onBack }) {
 
                             <label>
                                 <span>District</span>
-                                <input
+                                <select
                                     name="district"
-                                    value={formData.district || ""}
+                                    value={districtSelectValue}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    placeholder="Example: Thoothukudi"
                                     required
-                                />
+                                >
+                                    <option value="">Select your district</option>
+                                    {/* Keep any previously saved free-text value selectable */}
+                                    {formData.district && !matchingDistrict && (
+                                        <option value={formData.district}>{formData.district}</option>
+                                    )}
+                                    {districts.map((district) => (
+                                        <option key={district.id} value={district.name}>
+                                            {district.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </label>
 
                             <div className="profile-service-strip">

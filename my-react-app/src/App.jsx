@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import Navbar from "./components/Navbar.jsx";
 import Content from "./components/Content.jsx";
 import Services from "./components/Services.jsx";
@@ -12,6 +12,7 @@ import FoodDelivery from "./pages/FoodDelivery/FoodDelivery.jsx";
 import GroceryDelivery from "./pages/GroceryDelivery/GroceryDelivery.jsx";
 import MedicineDelivery from "./pages/MedicineDelivery/MedicineDelivery.jsx";
 import CourierDelivery from "./pages/CourierDelivery/CourierDelivery.jsx";
+import PrescriptionUpload from "./pages/PrescriptionUpload/PrescriptionUpload.jsx";
 import UserProfile from "./pages/UserProfile/UserProfile.jsx";
 import Cart from "./pages/Cart/Cart.jsx";
 import Checkout from "./pages/Checkout/Checkout.jsx";
@@ -22,6 +23,8 @@ import PaymentSuccess from "./pages/Payment/PaymentSuccess.jsx";
 import PaymentFailed from "./pages/Payment/PaymentFailed.jsx";
 import PaymentHistory from "./pages/Payment/PaymentHistory.jsx";
 import AIChatButton from "./components/AIChatButton.jsx";
+import ExploreDistricts from "./pages/ExploreDistricts/ExploreDistricts.jsx";
+import "./components/HomePolish.css";
 
 function App() {
   const [currentView, setCurrentView] = useState('home');
@@ -105,6 +108,13 @@ function App() {
           onGoToCart={() => setCurrentView('cart')}
         />
       )}
+      {currentView === 'explore-districts' && (
+        <ExploreDistricts onBack={() => setCurrentView('home')} onSelectDistrict={(district) => {
+          localStorage.setItem('selectedDistrictId', String(district.id));
+          setCurrentView('home');
+          window.setTimeout(() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' }), 50);
+        }} />
+      )}
       {currentView === 'grocery' && (
         <GroceryDelivery
           onBack={() => setCurrentView('home')}
@@ -115,6 +125,7 @@ function App() {
         <MedicineDelivery
           onBack={() => setCurrentView('home')}
           onGoToCart={() => setCurrentView('cart')}
+          onUploadPrescription={() => setCurrentView('prescription-upload')}
         />
       )}
       {currentView === 'courier' && (
@@ -123,6 +134,15 @@ function App() {
           onProceedToPayment={(session) => {
             setPaymentSession(session);
             setCurrentView('payment');
+          }}
+        />
+      )}
+      {currentView === 'prescription-upload' && (
+        <PrescriptionUpload
+          onBack={() => setCurrentView('medicine')}
+          onCheckout={(item) => {
+            setCheckoutItems([item]);
+            setCurrentView('checkout');
           }}
         />
       )}
@@ -175,6 +195,7 @@ function App() {
           }}
           onHistory={() => setCurrentView('payment-history')}
           onHome={() => setCurrentView('home')}
+          onOrders={() => setCurrentView('orders')}
         />
       )}
       {currentView === 'payment-failed' && (
@@ -223,7 +244,7 @@ function App() {
             onOrdersClick={() => setCurrentView('orders')}
           />
           <main className="main-content">
-            <Content />
+            <Content onExploreDistricts={() => setCurrentView('explore-districts')} />
             <Services
               onFoodOpen={() => setCurrentView('food')}
               onGroceryOpen={() => setCurrentView('grocery')}

@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import "./Payment.css";
+import { createCourierRoute } from "../../services/courierTrackingService";
+import { API_BASE } from "../../services/apiConfig";
+import { apiFetchJson } from "../../services/apiClient";
 
-const API_URL = "http://localhost:8080/api";
+const API_URL = API_BASE;
 const RAZORPAY_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
 
 function Payment({ session, onBack, onSuccess, onFailed }) {
@@ -20,6 +23,12 @@ function Payment({ session, onBack, onSuccess, onFailed }) {
     );
     const deliveryCharges = subtotal > 0 ? 0 : 0;
     const grandTotal = subtotal + deliveryCharges;
+    // Courier bookings carry their settings-driven split so the summary shows the
+    // distance-based delivery fee and the additive Anywhere platform fee honestly
+    // instead of the misleading "Free" delivery row used by product orders.
+    const courierMeta = address?.courierMeta;
+    const courierDeliveryFee = Number(courierMeta?.deliveryFee || 0);
+    const courierPlatformFee = Number(courierMeta?.platformFee || 0);
 
     useEffect(() => {
         if (window.Razorpay) {
@@ -45,6 +54,10 @@ function Payment({ session, onBack, onSuccess, onFailed }) {
         userId: user?.id,
         deliveryAddress: addressText(address),
         paymentMethod: method,
+        // Courier bookings carry the pickup→drop Haversine distance and district so
+        // the backend recalculates the same settings-driven fee (30 km radius enforced).
+        distanceKm: address?.courierMeta?.distanceKm,
+        district: address?.district,
         items: items.map((item) => ({
             productId: item.productId,
             serviceType: item.serviceType,
@@ -52,6 +65,30 @@ function Payment({ session, onBack, onSuccess, onFailed }) {
             price: item.price,
             quantity: item.quantity,
         })),
+    };
+
+    /* Persist the pickup→drop route via the existing courier tracking API so the
+       booking (coordinates, addresses, Haversine duration) is saved with its order. */
+    const saveCourierRouteIfAny = async (data) => {
+        const meta = address?.courierMeta;
+        const orderId = data?.order?.id;
+        if (!meta || !orderId) return;
+        try {
+            await createCourierRoute({
+                userId: user?.id,
+                orderId,
+                pickupLatitude: meta.pickupLatitude,
+                pickupLongitude: meta.pickupLongitude,
+                deliveryLatitude: meta.deliveryLatitude,
+                deliveryLongitude: meta.deliveryLongitude,
+                pickupAddress: meta.pickupAddress,
+                deliveryAddress: meta.deliveryAddress,
+                status: "PENDING",
+            });
+        } catch (err) {
+            // Route persistence must never fail an already-paid order.
+            console.warn("Courier route save skipped:", err?.message);
+        }
     };
 
     const completeCod = async () => {
@@ -62,6 +99,7 @@ function Payment({ session, onBack, onSuccess, onFailed }) {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "COD payment failed");
+        await saveCourierRouteIfAny(data);
         onSuccess(data);
     };
 
@@ -79,6 +117,7 @@ function Payment({ session, onBack, onSuccess, onFailed }) {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Payment verification failed");
+        await saveCourierRouteIfAny(data);
         onSuccess(data);
     };
 
@@ -223,8 +262,17 @@ function Payment({ session, onBack, onSuccess, onFailed }) {
                     </div>
 
                     <div className="payment-totals">
-                        <div><span>Subtotal</span><strong>Rs.{subtotal.toFixed(2)}</strong></div>
-                        <div><span>Delivery charges</span><strong>{deliveryCharges === 0 ? "Free" : `Rs.${deliveryCharges.toFixed(2)}`}</strong></div>
+                        {courierMeta ? (
+                            <>
+                                <div><span>Courier delivery fee</span><strong>Rs.{courierDeliveryFee.toFixed(2)}</strong></div>
+                                <div><span>Platform fee</span><strong>Rs.{courierPlatformFee.toFixed(2)}</strong></div>
+                            </>
+                        ) : (
+                            <>
+                                <div><span>Subtotal</span><strong>Rs.{subtotal.toFixed(2)}</strong></div>
+                                <div><span>Delivery charges</span><strong>{deliveryCharges === 0 ? "Free" : `Rs.${deliveryCharges.toFixed(2)}`}</strong></div>
+                            </>
+                        )}
                         <div className="grand"><span>Grand total</span><strong>Rs.{grandTotal.toFixed(2)}</strong></div>
                     </div>
 
@@ -254,6 +302,10 @@ function PaymentOption({ active, title, note, onClick }) {
 function addressText(address) {
     if (!address) return "Profile delivery address";
     if (typeof address === "string") return address;
+    if (address.courierMeta) {
+        const m = address.courierMeta;
+        return `Pickup: ${m.pickupAddress} → Delivery: ${m.deliveryAddress} | Receiver: ${address.town} (${address.landmark})`;
+    }
     if (address.addressLine?.startsWith("HUB:")) return address.addressLine;
     const parts = [
         address.addressLine,

@@ -1,0 +1,138 @@
+/* ============================================================
+   MapPreview.css — Swiggy/Zomato style courier route map
+   ============================================================ */
+
+.map-preview {
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    background: #f0f2f5;
+    z-index: 1;
+}
+
+/* Leaflet overrides for cleaner look */
+.map-preview .leaflet-control-zoom {
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;
+    border-radius: 10px !important;
+    overflow: hidden;
+}
+
+.map-preview .leaflet-control-zoom a {
+    width: 34px !important;
+    height: 34px !important;
+    line-height: 34px !important;
+    font-size: 16px !important;
+    color: #333 !important;
+}
+
+.map-preview .leaflet-control-zoom a:hover {
+    background: #f5f5f5 !important;
+}
+
+.map-preview .leaflet-control-attribution {
+    font-size: 9px !important;
+    background: rgba(255,255,255,0.7) !important;
+    border-radius: 4px 0 0 0 !important;
+    padding: 2px 6px !important;
+}
+
+.map-preview .leaflet-control-attribution a {
+    color: #999 !important;
+}
+
+/* ── Marker container ── */
+.mp-marker {
+    background: transparent !important;
+    border: 0 !important;
+}
+
+/* ── Pin wrapper ── */
+.mp-pin {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Pulsing ring ── */
+.mp-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--mp-color, #16a34a);
+    opacity: 0.25;
+    animation: mp-pulse-anim 2s ease-in-out infinite;
+}
+
+@keyframes mp-pulse-anim {
+    0%   { transform: translate(-50%, -50%) scale(1);   opacity: 0.25; }
+    50%  { transform: translate(-50%, -50%) scale(1.7); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1);   opacity: 0.25; }
+}
+
+/* ── Dot ── */
+.mp-dot {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    border: 2.5px solid #fff;
+    z-index: 2;
+}
+
+.mp-dot span {
+    transform: rotate(45deg);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ── Popup (shared with DeliveryMap) ── */
+.dm-popup {
+    font-family: 'Poppins', sans-serif;
+    padding: 4px 0;
+    min-width: 140px;
+}
+
+.dm-popup .dm-popup-badge {
+    display: inline-block;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 20px;
+    margin-bottom: 6px;
+}
+
+.dm-popup strong {
+    display: block;
+    font-size: 13px;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+}
+
+.dm-popup small {
+    font-size: 11px;
+    color: #666;
+}
+
+.dm-popup .dm-popup-rating {
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}

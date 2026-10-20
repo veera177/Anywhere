@@ -1,478 +1,249 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MessageBubble from './MessageBubble';
 import TypingAnimation from './TypingAnimation';
+import { AI_BASE, API_BASE } from '../services/apiConfig';
+import { apiFetchJson } from '../services/apiClient';
 
-function AIChatWindow({ onClose, onAction }) {
-    const [messages, setMessages] = useState(() => {
-        const saved = localStorage.getItem('ai_chat_history');
-        if (saved) {
-            try {
-                return JSON.parse(saved);
-            } catch (e) {
-                console.error(e);
-            }
-        }
-        return [
-            {
-                id: 'welcome',
-                sender: 'assistant',
-                text: "Hello! I'm your Anywhere AI Assistant. 🌾🥗💊\nHow can I help you today? You can ask me to:\n- Order food, groceries, or medicines\n- Track or clear your cart & orders\n- Book local plumbers or electricians\n- Find agricultural seeds and farming tools\n- Look up nearest government hospitals",
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }
-        ];
-    });
-    
+const HISTORY_KEY = 'ai_chat_history';
+const STARTERS = [
+    { title: 'Find food', prompt: 'Show biryani near me', icon: '🍽' },
+    { title: 'Order groceries', prompt: 'Help me find grocery items', icon: '🛒' },
+    { title: 'Need medicine', prompt: 'Find a nearby pharmacy', icon: '✚' },
+    { title: 'Send a courier', prompt: 'Help me book a courier', icon: '↗' },
+];
+const EXAMPLES = ['How many restaurants in Salem?', 'Track my order', 'Cheapest food near me'];
+const QUICK_DEFAULTS = ['Find food nearby', 'Track my order', 'Book a courier'];
+
+function readHistory() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        return Array.isArray(saved) ? saved.filter((message) => message && message.id && message.sender && message.id !== 'welcome') : [];
+    } catch { return []; }
+}
+
+function timestampNow() { return new Date().toISOString(); }
+function asDate(value) { const date = new Date(value); return Number.isNaN(date.getTime()) ? new Date() : date; }
+function dateLabel(value) {
+    const date = asDate(value); const today = new Date();
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric' });
+}
+function timeLabel(value) { return asDate(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+function readableReply(data) {
+    let reply = typeof data?.reply === 'string' ? data.reply : typeof data?.message === 'string' ? data.message : '';
+    const trimmed = reply.trim();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        try {
+            const parsed = JSON.parse(trimmed);
+            reply = typeof parsed === 'string' ? parsed : parsed?.reply ?? parsed?.message ?? parsed?.content ?? parsed?.text ?? '';
+        } catch { reply = ''; }
+    }
+    return String(reply || '').replaceAll('â‚¹', '₹').replaceAll('â˜…', '★').replaceAll('â­', '★').replaceAll('�', '');
+}
+
+function AIChatWindow({ onClose, onMinimize, onAction }) {
+    const [messages, setMessages] = useState(readHistory);
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const [thinkingLong, setThinkingLong] = useState(false);
     const [ttsEnabled, setTtsEnabled] = useState(false);
     const [isListening, setIsListening] = useState(false);
-    const chatEndRef = useRef(null);
+    const [status, setStatus] = useState('reconnecting');
+    const [confirmClear, setConfirmClear] = useState(false);
+    const [showJump, setShowJump] = useState(false);
+    const [inputRows, setInputRows] = useState(1);
+    const messagesRef = useRef(null);
+    const inputRef = useRef(null);
+    const dialogRef = useRef(null);
     const recognitionRef = useRef(null);
+    const wasNearBottomRef = useRef(true);
+    const sequenceRef = useRef(0);
 
-    // Suggested Questions
-    const suggestions = [
-        "Show cheap food",
-        "Book a plumber",
-        "Track my order",
-        "Clear my cart",
-        "Farming seeds and tools",
-        "Nearest government hospital"
-    ];
+    const userName = useMemo(() => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            return String(user?.name || user?.fullName || '').trim().split(/\s+/)[0];
+        } catch { return ''; }
+    }, []);
+    const lastAssistant = [...messages].reverse().find((message) => message.sender === 'assistant' && !message.errorKind)?.text || '';
+    const quickReplies = useMemo(() => {
+        const text = lastAssistant.toLowerCase();
+        if (!text) return QUICK_DEFAULTS;
+        if (text.includes('restaurant') || text.includes('found') || text.includes('biryani') || text.includes('item')) return ['Show cheaper', 'Open menu', 'Find another item'];
+        if (text.includes('order')) return ['Track order', 'View my orders', 'Contact support'];
+        if (text.includes('courier') || text.includes('pickup')) return ['Book courier', 'Check courier rate', 'Change pickup'];
+        return QUICK_DEFAULTS;
+    }, [lastAssistant]);
 
     useEffect(() => {
-        localStorage.setItem('ai_chat_history', JSON.stringify(messages));
-        scrollToBottom();
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(messages.slice(-100)));
     }, [messages]);
 
-    const scrollToBottom = () => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+    useEffect(() => {
+        inputRef.current?.focus();
+        const check = async () => {
+            setStatus((current) => current === 'offline' ? 'reconnecting' : current);
+            const controller = new AbortController();
+            const timeout = window.setTimeout(() => controller.abort(), 3500);
+            try {
+                const response = await fetch(`${API_BASE}/platform-settings`, { signal: controller.signal, headers: { Accept: 'application/json' } });
+                setStatus(response.ok ? 'online' : response.status >= 500 ? 'offline' : 'online');
+            } catch { setStatus('offline'); }
+            finally { window.clearTimeout(timeout); }
+        };
+        check();
+        const interval = window.setInterval(check, 30000);
+        return () => window.clearInterval(interval);
+    }, []);
 
-    // Text to Speech
+    useEffect(() => {
+        const list = messagesRef.current;
+        if (!list) return;
+        const distance = list.scrollHeight - list.scrollTop - list.clientHeight;
+        const nearBottom = distance < 90 || wasNearBottomRef.current;
+        if (nearBottom) {
+            list.scrollTo({ top: list.scrollHeight, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+            setShowJump(false);
+        } else setShowJump(true);
+    }, [messages, isTyping, thinkingLong]);
+
+    useEffect(() => {
+        const dialog = dialogRef.current;
+        if (!dialog) return undefined;
+        const handleKeys = (event) => {
+            if (event.key === 'Escape') { event.preventDefault(); onClose(); return; }
+            if (event.key !== 'Tab') return;
+            const focusables = [...dialog.querySelectorAll('button:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')].filter((node) => !node.hidden);
+            if (!focusables.length) return;
+            const first = focusables[0]; const last = focusables[focusables.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        };
+        document.addEventListener('keydown', handleKeys);
+        return () => document.removeEventListener('keydown', handleKeys);
+    }, [onClose]);
+
     const speakText = (text) => {
-        if (!ttsEnabled || !window.speechSynthesis) return;
+        if (!ttsEnabled || !window.speechSynthesis || !text) return;
         window.speechSynthesis.cancel();
-        const cleanedText = text.replace(/[-*#]/g, '');
-        const utterance = new SpeechSynthesisUtterance(cleanedText);
-        utterance.lang = 'en-IN'; // Indian English accents fit well
-        window.speechSynthesis.speak(utterance);
+        const utterance = new SpeechSynthesisUtterance(text.replace(/[*#]/g, ''));
+        utterance.lang = 'en-IN'; window.speechSynthesis.speak(utterance);
     };
 
-    // Speech to Text (Voice Input)
+    const addMessage = useCallback((message) => setMessages((previous) => [...previous, message]), []);
+
+    const handleSend = async (requestedText = inputValue) => {
+        const messageText = String(requestedText || '').trim().slice(0, 500);
+        if (!messageText || isTyping) return;
+        if (requestedText === inputValue) setInputValue('');
+        setInputRows(1);
+        const sentAt = timestampNow();
+        addMessage({ id: `user-${Date.now()}-${sequenceRef.current++}`, sender: 'user', text: messageText, timestamp: sentAt });
+        setIsTyping(true); setThinkingLong(false);
+        const longTimer = window.setTimeout(() => setThinkingLong(true), 8000);
+        let district = '';
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            district = user?.district || localStorage.getItem('selectedDistrictId') || '';
+        } catch { /* Keep optional UI context empty. */ }
+        try {
+            const data = await apiFetchJson(`${AI_BASE}/chat`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                // The backend takes identity exclusively from the JWT. District is
+                // optional UI context, not an authorization input.
+                body: JSON.stringify({ message: messageText, district }),
+            }, { retries: 0 });
+            const reply = readableReply(data);
+            const noData = /\bno (?:matching )?(?:items?|results?|products?|restaurants?|stores?|pharmacies)\b.*\b(?:found|available)\b|\bnothing (?:was )?found\b|\bno data found\b/i.test(reply);
+            addMessage({ id: `assistant-${Date.now()}-${sequenceRef.current++}`, sender: 'assistant', text: reply || 'I couldn’t find a response. Please try again.', timestamp: timestampNow(), ...(noData ? { errorKind: 'no-data' } : {}) });
+            speakText(reply);
+            if (data?.action && data.action !== 'NONE') window.setTimeout(() => onAction?.(data.action, data.actionData), 900);
+        } catch (error) {
+            const kind = error?.kind || (error?.statusCode === 401 ? 'unauthorized' : error?.statusCode >= 500 ? 'server' : 'connection');
+            const text = kind === 'warming' ? 'The assistant is warming up. Give it a moment, then try again.'
+                : kind === 'unauthorized' ? 'Your session has expired. Please sign in again.'
+                : kind === 'server' ? 'The assistant server returned an error. Please retry in a moment.'
+                    : 'I can’t reach the assistant server right now. Check the connection and try again.';
+            addMessage({ id: `error-${Date.now()}-${sequenceRef.current++}`, sender: 'assistant', text, timestamp: timestampNow(), errorKind: kind, retryText: messageText });
+        } finally { window.clearTimeout(longTimer); setThinkingLong(false); setIsTyping(false); }
+    };
+
     const toggleListening = () => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert("Speech recognition is not supported in this browser. Please try Chrome or Safari.");
-            return;
-        }
-
-        if (isListening) {
-            recognitionRef.current?.stop();
-            setIsListening(false);
-            return;
-        }
-
-        const rec = new SpeechRecognition();
-        rec.continuous = false;
-        rec.interimResults = false;
-        rec.lang = 'en-IN';
-
-        rec.onstart = () => {
-            setIsListening(true);
-        };
-
-        rec.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            setInputValue(transcript);
-        };
-
-        rec.onerror = (e) => {
-            console.error("Speech Recognition Error", e);
-            setIsListening(false);
-        };
-
-        rec.onend = () => {
-            setIsListening(false);
-        };
-
-        recognitionRef.current = rec;
-        rec.start();
+        if (!SpeechRecognition) { addMessage({ id: `voice-${Date.now()}`, sender: 'assistant', text: 'Voice input is not supported in this browser. You can type your request instead.', timestamp: timestampNow() }); return; }
+        if (isListening) { recognitionRef.current?.stop(); setIsListening(false); return; }
+        const recognition = new SpeechRecognition(); recognition.continuous = false; recognition.interimResults = false; recognition.lang = 'en-IN';
+        recognition.onstart = () => setIsListening(true);
+        recognition.onresult = (event) => setInputValue(event.results?.[0]?.[0]?.transcript || '');
+        recognition.onerror = () => setIsListening(false); recognition.onend = () => setIsListening(false);
+        recognitionRef.current = recognition; recognition.start();
     };
 
-    const handleSend = async (textToSend) => {
-        const messageText = textToSend || inputValue;
-        if (!messageText.trim()) return;
-
-        if (!textToSend) setInputValue('');
-
-        const userMsg = {
-            id: 'msg_' + Date.now(),
-            sender: 'user',
-            text: messageText,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        };
-
-        setMessages(prev => [...prev, userMsg]);
-        setIsTyping(true);
-
-        // Fetch User and Location Context from Local Storage
-        let userId = null;
-        let district = 'salem';
-        try {
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                const userObj = JSON.parse(userStr);
-                userId = userObj.id;
-                district = userObj.district || 'salem';
-            }
-        } catch (e) {
-            console.error("Failed to parse user from localStorage", e);
-        }
-
-        try {
-            const response = await fetch('http://localhost:8080/api/ai/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message: messageText,
-                    userId: userId,
-                    district: district
-                })
-            });
-
-            const data = await response.json();
-            
-            const assistantMsg = {
-                id: 'msg_' + (Date.now() + 1),
-                sender: 'assistant',
-                text: data.reply,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-
-            setIsTyping(false);
-            setMessages(prev => [...prev, assistantMsg]);
-            
-            // Speak the response if TTS enabled
-            speakText(data.reply);
-
-            // Handle Trigger Actions (e.g. Navigations)
-            if (data.action && data.action !== 'NONE') {
-                setTimeout(() => {
-                    if (onAction) {
-                        onAction(data.action, data.actionData);
-                    }
-                }, 1500); // Small delay to let user read the message
-            }
-
-        } catch (error) {
-            console.error('AI chat error:', error);
-            setIsTyping(false);
-            setMessages(prev => [...prev, {
-                id: 'err_' + Date.now(),
-                sender: 'assistant',
-                text: "Sorry, I'm having trouble connecting to the server. Please check if the backend is running locally.",
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }]);
-        }
+    const handleClear = () => {
+        setMessages([]); setConfirmClear(false); localStorage.removeItem(HISTORY_KEY);
     };
 
-    const handleClearChat = () => {
-        if (window.confirm("Are you sure you want to clear your chat history?")) {
-            setMessages([
-                {
-                    id: 'welcome',
-                    sender: 'assistant',
-                    text: "Hello! History cleared. How can I help you today?",
-                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                }
-            ]);
-        }
+    const handleScroll = () => {
+        const list = messagesRef.current; if (!list) return;
+        const nearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
+        wasNearBottomRef.current = nearBottom; if (nearBottom) setShowJump(false);
     };
+
+    const rendered = messages.map((message, index) => {
+        const previous = messages[index - 1]; const next = messages[index + 1];
+        const sameGroupBefore = previous?.sender === message.sender && dateLabel(previous.timestamp) === dateLabel(message.timestamp);
+        const sameGroupAfter = next?.sender === message.sender && dateLabel(next.timestamp) === dateLabel(message.timestamp);
+        const newDay = !previous || dateLabel(previous.timestamp) !== dateLabel(message.timestamp);
+        return { message, showAvatar: message.sender === 'assistant' && !sameGroupBefore, showTime: !sameGroupAfter, newDay };
+    });
 
     return (
-        <div className="ai-chat-window-card">
-            {/* Header */}
-            <div className="chat-header">
-                <div className="ai-logo">
-                    <span className="logo-spark">✨</span>
-                    <span className="logo-text">Anywhere Assistant</span>
-                </div>
-                <div className="header-actions">
-                    <button 
-                        className={`action-btn ${ttsEnabled ? 'active' : ''}`} 
-                        onClick={() => setTtsEnabled(!ttsEnabled)} 
-                        title={ttsEnabled ? "Disable Text-to-Speech" : "Enable Text-to-Speech"}
-                    >
-                        {ttsEnabled ? '🔊' : '🔇'}
-                    </button>
-                    <button className="action-btn" onClick={handleClearChat} title="Clear chat history">
-                        🗑️
-                    </button>
-                    <button className="action-btn close-btn" onClick={onClose} title="Close AI window">
-                        ❌
-                    </button>
-                </div>
-            </div>
+        <div className="ai-chat-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && window.innerWidth <= 480) onClose(); }}>
+            <section ref={dialogRef} className="ai-chat-window-card" role="dialog" aria-modal="true" aria-labelledby="ai-chat-title" aria-describedby="ai-chat-status">
+                <div className="ai-chat-drag-handle" aria-hidden="true"><span /></div>
+                <header className="chat-header">
+                    <div className="ai-header-identity">
+                        <span className="ai-header-avatar" aria-hidden="true">A</span>
+                        <span className="ai-header-copy"><strong id="ai-chat-title">Anywhere AI</strong><small id="ai-chat-status" className={`ai-status ai-status-${status}`}><i />{status === 'online' ? 'Online' : status === 'offline' ? 'Offline' : 'Reconnecting...'}</small></span>
+                    </div>
+                    <div className="header-actions">
+                        <button type="button" className={`action-btn ${ttsEnabled ? 'active' : ''}`} onClick={() => setTtsEnabled((enabled) => !enabled)} aria-label={ttsEnabled ? 'Turn sound off' : 'Turn sound on'} title={ttsEnabled ? 'Sound on' : 'Sound off'}>{ttsEnabled ? '◖' : '♪'}</button>
+                        <button type="button" className="action-btn" onClick={() => setConfirmClear((value) => !value)} aria-label="Clear chat" title="Clear chat">⌫</button>
+                        <button type="button" className="action-btn" onClick={onMinimize} aria-label="Minimize chat" title="Minimize">−</button>
+                        <button type="button" className="action-btn" onClick={onClose} aria-label="Close chat" title="Close">×</button>
+                    </div>
+                </header>
+                {confirmClear && <div className="ai-clear-confirm" role="group" aria-label="Confirm clear chat"><span>Clear this conversation?</span><button type="button" onClick={handleClear}>Clear</button><button type="button" onClick={() => setConfirmClear(false)}>Cancel</button></div>}
 
-            {/* Message Body */}
-            <div className="chat-body">
-                <div className="messages-list">
-                    {messages.map(m => (
-                        <MessageBubble key={m.id} message={m} />
-                    ))}
-                    {isTyping && (
-                        <div className="typing-container">
-                            <TypingAnimation />
-                        </div>
-                    )}
-                    <div ref={chatEndRef} />
-                </div>
-            </div>
+                <main className="chat-body" ref={messagesRef} onScroll={handleScroll} aria-live="polite" aria-relevant="additions text">
+                    {messages.length === 0 && <section className="ai-welcome-state">
+                        <div className="ai-welcome-mark" aria-hidden="true">✦</div>
+                        <h2>{userName ? `Hi ${userName}, what can I get you?` : 'Hi there, what can I get you?'}</h2>
+                        <p>Your local services, one friendly assistant.</p>
+                        <div className="ai-starter-grid">{STARTERS.map((starter) => <button type="button" className="ai-starter-card" key={starter.title} onClick={() => handleSend(starter.prompt)}><span aria-hidden="true">{starter.icon}</span><strong>{starter.title}</strong><small>{starter.prompt}</small></button>)}</div>
+                        <div className="ai-example-questions"><span>Try asking</span>{EXAMPLES.map((example) => <button type="button" key={example} onClick={() => handleSend(example)}>{example}</button>)}</div>
+                    </section>}
+                    {rendered.map(({ message, showAvatar, showTime, newDay }, index) => <div className="ai-message-sequence" key={message.id} style={{ animationDelay: `${Math.min(index, 5) * 24}ms` }}>
+                        {newDay && <div className="ai-date-separator"><span>{dateLabel(message.timestamp)}</span></div>}
+                        <MessageBubble message={message} showAvatar={showAvatar} showTime={showTime} timeLabel={timeLabel(message.timestamp)} onRetry={() => handleSend(message.retryText)} onAddItem={(name) => handleSend(`Add ${name} to my cart`)} />
+                    </div>)}
+                    {isTyping && <div className="typing-container"><TypingAnimation label={thinkingLong ? 'Still thinking...' : 'Anywhere AI is thinking'} slow={thinkingLong} /></div>}
+                    <div className="ai-chat-end-anchor" />
+                </main>
+                {showJump && <button type="button" className="ai-jump-latest" onClick={() => { wasNearBottomRef.current = true; messagesRef.current?.scrollTo({ top: messagesRef.current.scrollHeight, behavior: 'smooth' }); setShowJump(false); }}>↓ Jump to latest</button>}
 
-            {/* Suggestions */}
-            <div className="chat-suggestions">
-                {suggestions.map((s, idx) => (
-                    <button key={idx} className="suggestion-chip" onClick={() => handleSend(s)}>
-                        {s}
-                    </button>
-                ))}
-            </div>
-
-            {/* Footer Input Area */}
-            <div className="chat-footer">
-                <button 
-                    className={`voice-input-btn ${isListening ? 'listening' : ''}`} 
-                    onClick={toggleListening}
-                    title="Speak message"
-                >
-                    🎤
-                </button>
-                <input 
-                    type="text" 
-                    className="message-input" 
-                    placeholder="Type or speak a message..." 
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                />
-                <button className="send-msg-btn" onClick={() => handleSend()}>
-                    ➔
-                </button>
-            </div>
-
-            <style>{`
-                .ai-chat-window-card {
-                    display: flex;
-                    flex-direction: column;
-                    width: 380px;
-                    height: 520px;
-                    background-color: white;
-                    border-radius: 16px;
-                    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
-                    border: 1px solid #eef0f3;
-                    overflow: hidden;
-                    position: fixed;
-                    bottom: 90px;
-                    right: 30px;
-                    z-index: 1000;
-                    animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                    font-family: 'Poppins', sans-serif;
-                }
-                .dark-mode .ai-chat-window-card {
-                    background-color: #1e1e1e;
-                    border-color: #2e2e2e;
-                }
-                @keyframes slideIn {
-                    from { transform: translateY(30px); opacity: 0; }
-                    to { transform: translateY(0); opacity: 1; }
-                }
-                .chat-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 14px 18px;
-                    background-color: #ffd600; /* Yellow */
-                    color: black;
-                    font-weight: 600;
-                    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-                }
-                .ai-logo {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-                .logo-spark {
-                    font-size: 1.2rem;
-                }
-                .logo-text {
-                    font-size: 0.95rem;
-                }
-                .header-actions {
-                    display: flex;
-                    gap: 8px;
-                }
-                .action-btn {
-                    background: rgba(255, 255, 255, 0.3);
-                    border: none;
-                    cursor: pointer;
-                    padding: 6px;
-                    border-radius: 50%;
-                    font-size: 0.9rem;
-                    transition: background 0.2s, transform 0.2s;
-                }
-                .action-btn:hover {
-                    background: rgba(255, 255, 255, 0.6);
-                    transform: scale(1.05);
-                }
-                .action-btn.active {
-                    background: #fff;
-                    border: 1px solid #ffd600;
-                }
-                .chat-body {
-                    flex: 1;
-                    padding: 16px;
-                    overflow-y: auto;
-                    background-color: #fcfcfc;
-                }
-                .dark-mode .chat-body {
-                    background-color: #121212;
-                }
-                .messages-list {
-                    display: flex;
-                    flex-direction: column;
-                }
-                .typing-container {
-                    margin-bottom: 12px;
-                }
-                .chat-suggestions {
-                    display: flex;
-                    gap: 6px;
-                    padding: 8px 16px;
-                    overflow-x: auto;
-                    white-space: nowrap;
-                    background-color: #fdfdfd;
-                    border-top: 1px solid #eee;
-                    scrollbar-width: none; /* Firefox */
-                }
-                .dark-mode .chat-suggestions {
-                    background-color: #1a1a1a;
-                    border-color: #2a2a2a;
-                }
-                .chat-suggestions::-webkit-scrollbar {
-                    display: none; /* Chrome/Safari */
-                }
-                .suggestion-chip {
-                    display: inline-block;
-                    background-color: #f1f3f4;
-                    color: #5f6368;
-                    border: none;
-                    border-radius: 20px;
-                    padding: 6px 12px;
-                    font-size: 0.8rem;
-                    cursor: pointer;
-                    font-family: inherit;
-                    transition: background-color 0.2s, color 0.2s;
-                }
-                .suggestion-chip:hover {
-                    background-color: #ffd600;
-                    color: black;
-                }
-                .dark-mode .suggestion-chip {
-                    background-color: #2d2d2d;
-                    color: #ccc;
-                }
-                .dark-mode .suggestion-chip:hover {
-                    background-color: #ffd600;
-                    color: black;
-                }
-                .chat-footer {
-                    display: flex;
-                    align-items: center;
-                    padding: 10px 14px;
-                    background-color: white;
-                    border-top: 1px solid #f1f1f1;
-                    gap: 8px;
-                }
-                .dark-mode .chat-footer {
-                    background-color: #1e1e1e;
-                    border-color: #2e2e2e;
-                }
-                .message-input {
-                    flex: 1;
-                    border: 1px solid #dadce0;
-                    border-radius: 24px;
-                    padding: 10px 16px;
-                    font-size: 0.9rem;
-                    outline: none;
-                    font-family: inherit;
-                    transition: border-color 0.2s;
-                }
-                .dark-mode .message-input {
-                    background-color: #2a2a2a;
-                    border-color: #3a3a3a;
-                    color: white;
-                }
-                .message-input:focus {
-                    border-color: #ffd600;
-                }
-                .voice-input-btn {
-                    background-color: #f1f3f4;
-                    border: none;
-                    cursor: pointer;
-                    width: 36px;
-                    height: 36px;
-                    border-radius: 50%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    font-size: 1rem;
-                    transition: background-color 0.2s;
-                }
-                .dark-mode .voice-input-btn {
-                    background-color: #2a2a2a;
-                    color: white;
-                }
-                .voice-input-btn.listening {
-                    background-color: #ea4335;
-                    color: white;
-                    animation: pulseMicrophone 1.5s infinite;
-                }
-                @keyframes pulseMicrophone {
-                    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.4); }
-                    70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(234, 67, 53, 0); }
-                    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(234, 67, 53, 0); }
-                }
-                .send-msg-btn {
-                    background-color: #ffd600;
-                    color: black;
-                    border: none;
-                    cursor: pointer;
-                    width: 36px;
-                    height: 36px;
-                    border-radius: 50%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    font-weight: bold;
-                    font-size: 1.1rem;
-                    transition: transform 0.2s, background-color 0.2s;
-                }
-                .send-msg-btn:hover {
-                    transform: scale(1.05);
-                    background-color: #e5c100;
-                }
-                
-                /* Responsive Layout rules */
-                @media (max-width: 480px) {
-                    .ai-chat-window-card {
-                        width: 100%;
-                        height: 100%;
-                        bottom: 0;
-                        right: 0;
-                        border-radius: 0;
-                    }
-                }
-            `}</style>
+                {messages.length > 0 && <div className="chat-suggestions" aria-label="Suggested follow-up questions">{quickReplies.map((reply) => <button type="button" className="suggestion-chip" key={reply} onClick={() => handleSend(reply)}>{reply}</button>)}</div>}
+                <footer className="chat-footer">
+                    <div className="ai-input-shell">
+                        <textarea ref={inputRef} rows={inputRows} className="message-input" placeholder="Ask me anything…" aria-label="Message Anywhere AI" maxLength={500} value={inputValue} onChange={(event) => { const value = event.target.value.slice(0, 500); setInputValue(value); setInputRows(Math.min(4, Math.max(value.split('\n').length, Math.ceil(event.target.scrollHeight / 18)))); }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); handleSend(); } }} />
+                        <div className="ai-input-meta"><span>Enter to send · Shift+Enter for a new line</span><span>{inputValue.length}/500</span></div>
+                    </div>
+                    <button type="button" className={`voice-input-btn ${isListening ? 'listening' : ''}`} onClick={toggleListening} aria-label={isListening ? 'Stop voice input' : 'Start voice input'} title="Voice input">♩</button>
+                    <button type="button" className="send-msg-btn" onClick={() => handleSend()} disabled={!inputValue.trim() || isTyping} aria-label="Send message" title="Send">↑</button>
+                </footer>
+            </section>
         </div>
     );
 }

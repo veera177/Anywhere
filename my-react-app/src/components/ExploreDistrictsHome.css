@@ -1,0 +1,57 @@
+.district-home-card {
+    margin-top: 22px;
+    padding: 18px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 18px;
+    align-items: center;
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    border-radius: 14px;
+    background: var(--card);
+    box-shadow: 0 16px 34px rgba(31, 41, 55, 0.08);
+    transition: all 0.3s ease;
+}
+
+.district-home-card span {
+    display: block;
+    color: #FFD700;
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.district-home-card h2 {
+    margin: 4px 0;
+    font-size: 1.12rem;
+    line-height: 1.25;
+    color: var(--text);
+}
+
+.district-home-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+.district-home-card button {
+    min-height: 44px;
+    border: 0;
+    border-radius: 8px;
+    padding: 0 18px;
+    background: #1f2937;
+    color: #ffd84d;
+    font: inherit;
+    font-weight: 900;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+    .district-home-card {
+        grid-template-columns: 1fr;
+    }
+    .district-home-card button {
+        width: 100%;
+    }
+}

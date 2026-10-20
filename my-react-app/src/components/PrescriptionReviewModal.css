@@ -1,0 +1,377 @@
+/* Shared overlay */
+.prescription-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Review Modal - Animated Waiting */
+.review-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 24px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
+}
+
+.review-animation {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 20px;
+}
+
+.pulse-ring {
+  position: absolute;
+  inset: 0;
+  border: 3px solid #f59e0b;
+  border-radius: 50%;
+  opacity: 0;
+  animation: pulseRing 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.pulse-ring.delay-1 { animation-delay: 0.5s; }
+.pulse-ring.delay-2 { animation-delay: 1s; }
+
+@keyframes pulseRing {
+  0% { transform: scale(0.6); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 0.2; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.pharmacist-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 40px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+  50% { transform: translate(-50%, -50%) translateY(-6px); }
+}
+
+.review-modal h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.review-medicine {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: #6b7280;
+}
+.review-medicine strong { color: #111827; }
+
+.review-status-text {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: #3b82f6;
+  font-weight: 500;
+  min-height: 20px;
+  animation: textFade 0.5s ease-in-out;
+}
+
+@keyframes textFade {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+.review-progress {
+  margin-top: 8px;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  border-radius: 3px;
+  animation: progressFill 10s linear forwards;
+  transform-origin: left center;
+}
+
+@keyframes progressFill {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+.progress-label {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Result Modal - Approved */
+.result-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 24px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
+}
+
+.result-modal.approved {
+  animation: slideUp 0.3s ease-out, successGlow 0.6s ease-out;
+}
+
+@keyframes successGlow {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0.1); }
+  100% { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); }
+}
+
+.success-animation {
+  margin-bottom: 16px;
+}
+
+.checkmark-circle {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+}
+
+.checkmark-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.checkmark-circle-bg {
+  stroke: #10b981;
+  stroke-width: 4;
+  stroke-dasharray: 157;
+  stroke-dashoffset: 157;
+  animation: circleDraw 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes circleDraw {
+  to { stroke-dashoffset: 0; }
+}
+
+.checkmark-path {
+  stroke: #10b981;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: checkDraw 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+}
+
+@keyframes checkDraw {
+  to { stroke-dashoffset: 0; }
+}
+
+.result-approved h2,
+.result-rejected h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
+  font-weight: 700;
+}
+.result-approved h2 { color: #10b981; }
+.result-rejected h2 { color: #dc2626; }
+
+.result-message {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: #374151;
+  line-height: 1.5;
+}
+.result-message strong { color: #111827; }
+
+.reassigned-notice {
+  margin: 8px 0 16px;
+  padding: 12px 16px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #1e40af;
+}
+.reassigned-notice strong { color: #1e40af; }
+
+.redirect-hint {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: #9ca3af;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Result Modal - Rejected */
+.result-modal.rejected {
+  animation: slideUp 0.3s ease-out, shakeModal 0.5s ease-out;
+}
+
+@keyframes shakeModal {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+.shake-animation {
+  margin-bottom: 16px;
+}
+
+.error-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  background: #fef2f2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  color: #dc2626;
+  animation: errorPop 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes errorPop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.rejection-reason {
+  margin: 8px 0 16px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #dc2626;
+}
+
+.alternatives-section {
+  margin: 20px 0;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.alternatives-section h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.alternatives-section ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.alternatives-section li {
+  margin: 6px 0;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.browse-hint {
+  margin: 16px 0 8px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.result-actions {
+  margin-top: 20px;
+}
+
+.btn-browse {
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  transition: all 0.2s;
+}
+.btn-browse:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Dark mode */
+body.dark-mode .review-modal,
+body.dark-mode .result-modal {
+  background: #1e293b;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .review-modal h2,
+body.dark-mode .result-approved h2,
+body.dark-mode .result-rejected h2 { color: #f1f5f9; }
+
+body.dark-mode .review-medicine { color: #94a3b8; }
+body.dark-mode .review-medicine strong { color: #f1f5f9; }
+body.dark-mode .review-status-text { color: #60a5fa; }
+
+body.dark-mode .result-message { color: #d1d5db; }
+body.dark-mode .result-message strong { color: #f1f5f9; }
+
+body.dark-mode .reassigned-notice {
+  background: #1e3a5f;
+  border-color: #1e40af;
+  color: #93c5fd;
+}
+body.dark-mode .reassigned-notice strong { color: #93c5fd; }
+
+body.dark-mode .redirect-hint { color: #64748b; }
+
+body.dark-mode .rejection-reason {
+  background: #7f1d1d;
+  border-color: #991b1b;
+  color: #fca5a5;
+}
+
+body.dark-mode .alternatives-section {
+  background: #0f172a;
+  border-color: #334155;
+}
+body.dark-mode .alternatives-section h3 { color: #e2e8f0; }
+body.dark-mode .alternatives-section li { color: #cbd5e1; }
+
+body.dark-mode .browse-hint { color: #64748b; }
+
+body.dark-mode .progress-bar { background: #334155; }
+body.dark-mode .progress-fill { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+
+body.dark-mode .error-icon {
+  background: #7f1d1d;
+  color: #fca5a5;
+}

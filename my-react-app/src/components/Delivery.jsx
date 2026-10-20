@@ -1,34 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useReveal, revealClass } from '../hooks/useReveal.js';
 
 function Delivery() {
-    const [isVisible, setIsVisible] = useState(false);
-    const ref = useRef();
-
-    useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                    observer.disconnect();
-                }
-            });
-        });
-        if (ref.current) observer.observe(ref.current);
-        return () => observer.disconnect();
-    }, []);
-
-    const revealStyle = {
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-        transition: 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
-    };
+    const [ref, isVisible] = useReveal();
 
     return (
-        <div 
-            ref={ref} 
-            className="delivery-card" 
-            id="delivery" 
-            style={revealStyle}
+        <div
+            ref={ref}
+            className={revealClass(isVisible, 'delivery-card')}
+            id="delivery"
         >
             <img 
                 src="https://cdn-icons-png.flaticon.com/512/2933/2933405.png" 

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import "./Checkout.css";
+import { API_BASE } from "../../services/apiConfig";
 
-const API_URL = "http://localhost:8080/api";
+const API_URL = API_BASE;
 
 function Checkout({ items, onBack, onProceedToPayment }) {
     const user = JSON.parse(localStorage.getItem("user"));

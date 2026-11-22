@@ -97,7 +97,7 @@ class KnowledgeRetrievalServiceTests {
     @DisplayName("Rejects a result outside the configured distance threshold")
     void rejectsAResultOutsideTheConfiguredThreshold() {
         KnowledgeRetrievalService service = new KnowledgeRetrievalService(
-                new FakeChroma(true, 0.46d, "Refund policy", "Q: Refund policy"), new FakeEmbedder(), "anywhere_knowledge", 0.45d);
+                new FakeChroma(true, 0.46d, "Courier policy", "Q: How do I send a parcel?"), new FakeEmbedder(), "anywhere_knowledge", 0.45d);
 
         assertTrue(service.retrieve("What is your refund policy?").isEmpty(),
                 "Distance 0.46 should be above threshold 0.45 and produce empty results");

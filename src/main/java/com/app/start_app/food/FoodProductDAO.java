@@ -16,10 +16,18 @@ public class FoodProductDAO {
 
     // GET PRODUCTS
     public List<FoodProduct> getFoodProducts(String district) {
-        return getFoodProducts(district, null);
+        return getFoodProducts(district, null, null);
     }
 
     public List<FoodProduct> getFoodProducts(String district, Integer restaurantId) {
+        return getFoodProducts(district, restaurantId, null, null);
+    }
+
+    public List<FoodProduct> getFoodProducts(String district, Integer restaurantId, String name) {
+        return getFoodProducts(district, restaurantId, name, null);
+    }
+
+    public List<FoodProduct> getFoodProducts(String district, Integer restaurantId, String name, Boolean inStock) {
 
         String sql = """
                 SELECT
@@ -28,9 +36,26 @@ public class FoodProductDAO {
                 FROM food_products fp
                 JOIN restaurants r
                 ON fp.restaurant_id = r.id
-                WHERE (? IS NULL OR fp.district = ?)
+                WHERE (? IS NULL OR EXISTS (
+                    SELECT 1
+                    FROM districts d
+                    WHERE (LOWER(d.code) = LOWER(?) OR LOWER(d.name) = LOWER(?))
+                      AND (LOWER(fp.district) = LOWER(d.code)
+                           OR LOWER(fp.district) = LOWER(d.name))
+                ))
                   AND (? IS NULL OR fp.restaurant_id = ?)
-                ORDER BY fp.rating DESC
+                  AND (? IS NULL OR LOWER(fp.name) LIKE LOWER(?)
+                       OR LOWER(fp.category) LIKE LOWER(?)
+                       OR LOWER(r.name) LIKE LOWER(?))
+                  AND (NOT ? OR fp.stock > 0)
+                ORDER BY
+                  CASE WHEN ? IS NULL THEN 0
+                       WHEN LOWER(fp.name) = LOWER(?) THEN 0
+                       WHEN LOWER(fp.name) LIKE LOWER(?) THEN 1
+                       ELSE 2 END,
+                  CASE WHEN fp.stock > 0 THEN 0 ELSE 1 END,
+                  fp.rating DESC
+                LIMIT 10
                 """;
 
         return jdbcTemplate.query(
@@ -53,8 +78,17 @@ public class FoodProductDAO {
                 ),
                 district,
                 district,
+                district,
                 restaurantId,
-                restaurantId
+                restaurantId,
+                name,
+                name == null ? null : "%" + name + "%",
+                name == null ? null : "%" + name + "%",
+                name == null ? null : "%" + name + "%",
+                Boolean.TRUE.equals(inStock),
+                name,
+                name,
+                name == null ? null : name + "%"
         );
     }
 

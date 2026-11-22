@@ -32,8 +32,9 @@ public class CourierTrackingController {
     }
 
     @PostMapping("/add-location")
-    public ResponseEntity<?> addLocation(@RequestBody RouteLocation location) {
+    public ResponseEntity<?> addLocation(@RequestBody RouteLocation location, @AuthenticationPrincipal Integer userId) {
         try {
+            requireRouteOwner(location.getRouteId() != null ? location.getRouteId() : location.getCourierId(), userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(courierTrackingService.addLocation(location));
         } catch (IllegalArgumentException | IllegalStateException exception) {
             return ResponseEntity.badRequest().body(Map.of("error", exception.getMessage()));
@@ -51,8 +52,9 @@ public class CourierTrackingController {
     }
 
     @PostMapping("/start/{routeId}")
-    public ResponseEntity<?> startRoute(@PathVariable Integer routeId) {
+    public ResponseEntity<?> startRoute(@PathVariable Integer routeId, @AuthenticationPrincipal Integer userId) {
         try {
+            requireRouteOwner(routeId, userId);
             return ResponseEntity.ok(courierTrackingService.startRoute(routeId));
         } catch (IllegalArgumentException | IllegalStateException exception) {
             return ResponseEntity.badRequest().body(Map.of("error", exception.getMessage()));
@@ -60,8 +62,9 @@ public class CourierTrackingController {
     }
 
     @PostMapping("/complete/{routeId}")
-    public ResponseEntity<?> completeRoute(@PathVariable Integer routeId) {
+    public ResponseEntity<?> completeRoute(@PathVariable Integer routeId, @AuthenticationPrincipal Integer userId) {
         try {
+            requireRouteOwner(routeId, userId);
             return ResponseEntity.ok(courierTrackingService.completeRoute(routeId));
         } catch (IllegalArgumentException | IllegalStateException exception) {
             return ResponseEntity.badRequest().body(Map.of("error", exception.getMessage()));
@@ -69,8 +72,9 @@ public class CourierTrackingController {
     }
 
     @GetMapping("/distance/{courierId}")
-    public ResponseEntity<?> getTotalDistance(@PathVariable Integer courierId) {
+    public ResponseEntity<?> getTotalDistance(@PathVariable Integer courierId, @AuthenticationPrincipal Integer userId) {
         try {
+            requireRouteOwner(courierId, userId);
             return ResponseEntity.ok(Map.of("distanceKm", courierTrackingService.getTotalDistance(courierId)));
         } catch (IllegalArgumentException | IllegalStateException exception) {
             return ResponseEntity.badRequest().body(Map.of("error", exception.getMessage()));
@@ -78,8 +82,9 @@ public class CourierTrackingController {
     }
 
     @PostMapping("/location/{locationId}/reached")
-    public ResponseEntity<?> markLocationReached(@PathVariable Integer locationId) {
+    public ResponseEntity<?> markLocationReached(@PathVariable Integer locationId, @AuthenticationPrincipal Integer userId) {
         try {
+            requireLocationOwner(locationId, userId);
             return ResponseEntity.ok(courierTrackingService.markLocationReached(locationId));
         } catch (IllegalArgumentException | IllegalStateException exception) {
             return ResponseEntity.badRequest().body(Map.of("error", exception.getMessage()));
@@ -87,8 +92,9 @@ public class CourierTrackingController {
     }
 
     @PostMapping("/location/{locationId}/completed")
-    public ResponseEntity<?> markLocationCompleted(@PathVariable Integer locationId) {
+    public ResponseEntity<?> markLocationCompleted(@PathVariable Integer locationId, @AuthenticationPrincipal Integer userId) {
         try {
+            requireLocationOwner(locationId, userId);
             return ResponseEntity.ok(courierTrackingService.markLocationCompleted(locationId));
         } catch (IllegalArgumentException | IllegalStateException exception) {
             return ResponseEntity.badRequest().body(Map.of("error", exception.getMessage()));
@@ -96,8 +102,9 @@ public class CourierTrackingController {
     }
 
     @GetMapping("/location/{locationId}/status")
-    public ResponseEntity<?> getLocationStatus(@PathVariable Integer locationId) {
+    public ResponseEntity<?> getLocationStatus(@PathVariable Integer locationId, @AuthenticationPrincipal Integer userId) {
         try {
+            requireLocationOwner(locationId, userId);
             return ResponseEntity.ok(Map.of("status", courierTrackingService.getLocationStatus(locationId)));
         } catch (IllegalArgumentException | IllegalStateException exception) {
             return ResponseEntity.badRequest().body(Map.of("error", exception.getMessage()));
@@ -105,8 +112,9 @@ public class CourierTrackingController {
     }
 
     @GetMapping("/route/{routeId}/status")
-    public ResponseEntity<?> getRouteStatus(@PathVariable Integer routeId) {
+    public ResponseEntity<?> getRouteStatus(@PathVariable Integer routeId, @AuthenticationPrincipal Integer userId) {
         try {
+            requireRouteOwner(routeId, userId);
             return ResponseEntity.ok(Map.of("status", courierTrackingService.getRouteStatus(routeId)));
         } catch (IllegalArgumentException | IllegalStateException exception) {
             return ResponseEntity.badRequest().body(Map.of("error", exception.getMessage()));
@@ -121,8 +129,15 @@ public class CourierTrackingController {
     }
 
     private void requireRouteOwner(Integer routeId, Integer userId) {
+        if (routeId == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Route id is required");
         CourierRoute route = courierTrackingService.getRoute(routeId);
         if (route == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Courier route not found");
         CurrentUser.owns(userId, route.getUserId());
+    }
+
+    private void requireLocationOwner(Integer locationId, Integer userId) {
+        RouteLocation location = courierTrackingService.getLocation(locationId);
+        if (location == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Route location not found");
+        requireRouteOwner(location.getRouteId(), userId);
     }
 }

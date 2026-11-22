@@ -12,6 +12,7 @@ public class OrderItem {
     private BigDecimal price;
     private Integer quantity;
     private BigDecimal subtotal;
+    private Boolean prescriptionRequired;
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
@@ -29,4 +30,7 @@ public class OrderItem {
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
     public BigDecimal getSubtotal() { return subtotal; }
     public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
+
+    public Boolean getPrescriptionRequired() { return prescriptionRequired; }
+    public void setPrescriptionRequired(Boolean prescriptionRequired) { this.prescriptionRequired = prescriptionRequired; }
 }

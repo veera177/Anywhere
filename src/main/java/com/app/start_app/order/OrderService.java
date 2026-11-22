@@ -2,12 +2,16 @@ package com.app.start_app.order;
 
 import com.app.start_app.delivery.DeliveryFeeBreakdown;
 import com.app.start_app.delivery.DeliveryFeeCalculator;
+import com.app.start_app.cart.CartDAO;
 import com.app.start_app.prescription.PrescriptionService;
 import com.app.start_app.settlement.SettlementService;
 import com.app.start_app.user.Address;
 import com.app.start_app.user.AddressDAO;
+import com.app.start_app.user.ProfileDistrictService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -37,21 +41,27 @@ public class OrderService {
     private final AddressDAO addressDAO;
     private final PrescriptionService prescriptionService;
     private final OrderStatusPublisher orderStatusPublisher;
+    private final CartDAO cartDAO;
+    private final ProfileDistrictService profileDistrictService;
 
     public OrderService(OrderDAO orderDAO, DeliveryFeeCalculator deliveryFeeCalculator,
                         SettlementService settlementService, AddressDAO addressDAO,
-                        PrescriptionService prescriptionService, OrderStatusPublisher orderStatusPublisher) {
+                        PrescriptionService prescriptionService, OrderStatusPublisher orderStatusPublisher,
+                        CartDAO cartDAO, ProfileDistrictService profileDistrictService) {
         this.orderDAO = orderDAO;
         this.deliveryFeeCalculator = deliveryFeeCalculator;
         this.settlementService = settlementService;
         this.addressDAO = addressDAO;
         this.prescriptionService = prescriptionService;
         this.orderStatusPublisher = orderStatusPublisher;
+        this.cartDAO = cartDAO;
+        this.profileDistrictService = profileDistrictService;
     }
 
     @Transactional
     public Order createOrder(CreateOrderRequest request) {
         validateRequest(request);
+        requireProfileDistrict(request);
         // Emergency priority changes routing/SLA only. It never bypasses medicine
         // prescription verification.
         prescriptionService.validateMedicineOrder(request.getUserId(), request.getItems());
@@ -109,6 +119,27 @@ public class OrderService {
             orderDAO.clearCartService(request.getUserId(), orderedService);
         }
         return orderDAO.findById(orderId);
+    }
+
+    /** Checkout is only allowed for shops inside the user's profile district. */
+    private void requireProfileDistrict(CreateOrderRequest request) {
+        String profileDistrict = profileDistrictService.requireDistrict(request.getUserId());
+
+        request.getItems().forEach(item -> {
+            // A courier booking has no selling shop: its pickup address is checked
+            // by CourierTrackingService after the order is created. Do not run it
+            // through the shop-district guard or it can be rejected as a shop order.
+            if ("COURIER".equalsIgnoreCase(item.getServiceType())) {
+                return;
+            }
+            String shopDistrict = cartDAO.getShopDistrict(item.getServiceType(), item.getProductId());
+            if (shopDistrict != null && !shopDistrict.equalsIgnoreCase(profileDistrict)) {
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        profileDistrictService.shopDistrictMessage(profileDistrict)
+                );
+            }
+        });
     }
 
     public List<Order> getUserOrders(Integer userId) {

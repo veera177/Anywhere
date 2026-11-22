@@ -17,6 +17,10 @@ public class CartService {
         return cartDAO.addToCart(cart);
     }
 
+    public String getShopDistrict(String serviceType, Integer productId) {
+        return cartDAO.getShopDistrict(serviceType, productId);
+    }
+
     public List<CartItem> getCart(Integer userId) {
         return cartDAO.getCartByUser(userId);
     }

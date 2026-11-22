@@ -6,6 +6,8 @@ Anywhere uses a configurable, distance-based delivery fee system. Fees are calcu
 
 **The checkout page is the authority for the final delivery fee.** Never use a static document value as the confirmed fee for a specific order.
 
+**No rush-delivery surcharge:** Anywhere does not add a separate rush-delivery fee. Customers see the applicable delivery fee at checkout before confirming the order.
+
 ## Food, grocery, and medicine delivery fees
 
 For Food, Grocery, and Medicine deliveries, the fee model works as follows:

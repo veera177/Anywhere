@@ -16,24 +16,20 @@ echo Make sure MySQL is running!
 echo.
 pause
 
-echo.
-echo Step 1: Initializing database...
-cd /d D:\anywhere
-mysql -u root -p < SETUP_DATABASE.sql
+REM Root folder of this project. Do not hard-code a drive letter.
+set "ROOT=%~dp0"
 
 echo.
-echo Step 2: Starting backend (will open in Terminal 1)...
-cd /d d:\springboot\start-app\start-app
-start "Backend Server - Press Ctrl+C to stop" cmd /k "mvn spring-boot:run"
+echo Step 1: Starting backend, Ollama and ChromaDB (Terminal 1)...
+start "Anywhere Backend - Keep Open" cmd /k "cd /d \"%ROOT%\" && mvn spring-boot:run"
 
 echo.
 echo Waiting 20 seconds for backend to start...
 timeout /t 20 /nobreak
 
 echo.
-echo Step 3: Starting frontend (will open in Terminal 2)...
-cd /d "C:\Users\veera vadivelan\OneDrive\Desktop\react\my-react-app"
-start "Frontend Dev Server - Press Ctrl+C to stop" cmd /k "npm run dev"
+echo Step 2: Starting frontend (Terminal 2)...
+start "Anywhere Frontend - Keep Open" cmd /k "cd /d \"%ROOT%my-react-app\" && npm run dev"
 
 echo.
 echo Waiting 10 seconds for frontend to start...

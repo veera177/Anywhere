@@ -16,6 +16,10 @@ public class CartItem {
     private Integer quantity;
     private String scheduleType;
     private boolean requiresPrescription;
+    private Integer stock;
+    private String district;
+    private Double shopLatitude;
+    private Double shopLongitude;
 
     public CartItem() {
     }
@@ -96,4 +100,12 @@ public class CartItem {
     public void setScheduleType(String scheduleType) { this.scheduleType = scheduleType; }
     public boolean isRequiresPrescription() { return requiresPrescription; }
     public void setRequiresPrescription(boolean requiresPrescription) { this.requiresPrescription = requiresPrescription; }
+    public Integer getStock() { return stock; }
+    public void setStock(Integer stock) { this.stock = stock; }
+    public String getDistrict() { return district; }
+    public void setDistrict(String district) { this.district = district; }
+    public Double getShopLatitude() { return shopLatitude; }
+    public void setShopLatitude(Double shopLatitude) { this.shopLatitude = shopLatitude; }
+    public Double getShopLongitude() { return shopLongitude; }
+    public void setShopLongitude(Double shopLongitude) { this.shopLongitude = shopLongitude; }
 }

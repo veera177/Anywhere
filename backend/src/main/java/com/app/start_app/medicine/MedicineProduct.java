@@ -16,6 +16,7 @@ public class MedicineProduct {
     private boolean available;
     private String pharmacyName;
     private Integer pharmacyId;
+    private boolean prescriptionRequired;
 
     public MedicineProduct() {
     }
@@ -162,5 +163,13 @@ public class MedicineProduct {
 
     public void setPharmacyId(Integer pharmacyId) {
         this.pharmacyId = pharmacyId;
+    }
+
+    public boolean isPrescriptionRequired() {
+        return prescriptionRequired;
+    }
+
+    public void setPrescriptionRequired(boolean prescriptionRequired) {
+        this.prescriptionRequired = prescriptionRequired;
     }
 }

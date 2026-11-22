@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.app.start_app.security.CurrentUser;
+import com.app.start_app.order.Order;
+import com.app.start_app.order.OrderService;
 
 import java.util.List;
 import java.util.Map;
@@ -15,9 +17,11 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class PrescriptionController {
     private final PrescriptionService prescriptionService;
+    private final OrderService orderService;
 
-    public PrescriptionController(PrescriptionService prescriptionService) {
+    public PrescriptionController(PrescriptionService prescriptionService, OrderService orderService) {
         this.prescriptionService = prescriptionService;
+        this.orderService = orderService;
     }
 
     // Debug endpoint to test multipart
@@ -60,7 +64,10 @@ public class PrescriptionController {
     }
 
     @GetMapping("/orders/{orderId}/prescription-status")
-    public ResponseEntity<?> orderStatus(@PathVariable Integer orderId) {
+    public ResponseEntity<?> orderStatus(@PathVariable Integer orderId, @AuthenticationPrincipal Integer userId) {
+        Order order = orderService.getOrder(orderId);
+        if (order == null) return ResponseEntity.notFound().build();
+        CurrentUser.owns(userId, order.getUserId());
         return ResponseEntity.ok(prescriptionService.getOrderStatus(orderId));
     }
 

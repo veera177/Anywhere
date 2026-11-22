@@ -1,10 +1,14 @@
 package com.app.start_app.food;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import com.app.start_app.user.ProfileDistrictService;
 
 import java.util.List;
 
@@ -13,18 +17,24 @@ import java.util.List;
 public class FoodProductController {
 
     private final FoodProductDAO foodProductDAO;
+    private final ProfileDistrictService profileDistrictService;
 
-    public FoodProductController(FoodProductDAO foodProductDAO) {
+    public FoodProductController(FoodProductDAO foodProductDAO, ProfileDistrictService profileDistrictService) {
         this.foodProductDAO = foodProductDAO;
+        this.profileDistrictService = profileDistrictService;
     }
 
-    // GET PRODUCTS
+    // GET PRODUCTS — the district always comes from the signed-in user's profile.
+    // Any `district` query parameter sent by the browser is ignored.
     @GetMapping("/api/food-products")
     public List<FoodProduct> getFoodProducts(
-            @RequestParam(required = false) String district,
-            @RequestParam(required = false) Integer restaurantId
+            @AuthenticationPrincipal Integer userId,
+            @RequestParam(required = false) Integer restaurantId,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Boolean inStock
     ) {
-        return foodProductDAO.getFoodProducts(district, restaurantId);
+        String profileDistrict = profileDistrictService.requireDistrict(userId);
+        return foodProductDAO.getFoodProducts(profileDistrict, restaurantId, name, inStock);
     }
 
     // PLACE ORDER
@@ -32,7 +42,7 @@ public class FoodProductController {
     public String placeOrder(
             @RequestParam int productId
     ) {
-        foodProductDAO.reduceStock(productId);
-        return "Order placed successfully";
+        throw new ResponseStatusException(HttpStatus.GONE,
+                "Direct ordering is unavailable. Add the item to cart and complete checkout.");
     }
 }

@@ -25,7 +25,12 @@ Category: FEES
 
 ## Medicine delivery fee and free delivery
 Q: What is the delivery fee and free delivery threshold for medicine?
-A: Medicine delivery is free on orders above Rs 149. Below Rs 149, tiered fees apply: Tier 1 base Rs 22, Tier 2 base Rs 17, Tier 3 base Rs 13 for 3 km. Emergency priority adds Rs 15 surcharge.
+A: Medicine delivery is free on orders above Rs 149. Below Rs 149, tiered fees apply: Tier 1 base Rs 22, Tier 2 base Rs 17, Tier 3 base Rs 13 for 3 km. The final applicable delivery fee is shown at checkout.
+Category: FEES
+
+## Extra or rush delivery fees
+Q: Is there an extra fee or rush-delivery charge?
+A: No. Anywhere does not charge a rush-delivery fee or a separate rush surcharge. The applicable delivery fee is calculated for the order and shown at checkout before confirmation.
 Category: FEES
 
 ## Courier service fee

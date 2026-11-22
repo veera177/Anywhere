@@ -7,8 +7,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Service to embed user question and retrieve top matching knowledge chunks from Chroma.
@@ -22,6 +25,11 @@ public class KnowledgeRetrievalService {
     private final OllamaEmbedService embedService;
     private final String collectionName;
     private final double distanceThreshold;
+    private static final Set<String> GENERIC_TERMS = Set.of(
+            "about", "after", "before", "could", "delivery", "does", "from", "have",
+            "help", "information", "order", "orders", "policy", "question", "service",
+            "that", "their", "there", "these", "what", "when", "where", "which", "with",
+            "would", "your", "anywhere");
 
     public KnowledgeRetrievalService(
             ChromaRestClient chromaClient,
@@ -50,7 +58,10 @@ public class KnowledgeRetrievalService {
         try {
             List<Float> queryEmbedding = embedService.embed(query);
             String colId = chromaClient.getOrCreateCollection(collectionName);
-            result = chromaClient.query(colId, queryEmbedding, topN);
+            // A few more candidates let the lexical safety net find an authored
+            // policy section when an embedding score is just outside the strict
+            // semantic threshold.
+            result = chromaClient.query(colId, queryEmbedding, Math.max(topN, 8));
         } catch (Exception exception) {
             // Embedding and Chroma transport failures are both unavailable knowledge,
             // not facts the assistant may safely guess at.
@@ -75,10 +86,13 @@ public class KnowledgeRetrievalService {
             String source = meta != null && meta.containsKey("source") ? String.valueOf(meta.get("source")) : id;
             String category = meta != null && meta.containsKey("category") ? String.valueOf(meta.get("category")) : "GENERAL";
 
-            log.info("RAG candidate: id={}, distance={}, title='{}', threshold={}, accepted={}",
-                    id, distance, source, distanceThreshold, distance <= distanceThreshold);
+            boolean semanticMatch = distance <= distanceThreshold;
+            boolean keywordMatch = hasSpecificKeywordOverlap(query, document);
+            boolean accepted = semanticMatch || keywordMatch;
+            log.info("RAG candidate: id={}, distance={}, title='{}', threshold={}, semanticMatch={}, keywordMatch={}, accepted={}",
+                    id, distance, source, distanceThreshold, semanticMatch, keywordMatch, accepted);
 
-            if (distance <= distanceThreshold) {
+            if (accepted) {
                 matchingChunks.add(new RetrievedChunk(id, document, distance, source, category));
             }
         }
@@ -88,6 +102,31 @@ public class KnowledgeRetrievalService {
 
     public double getDistanceThreshold() {
         return distanceThreshold;
+    }
+
+    /**
+     * Chroma still selects the candidate documents. This only accepts a selected
+     * candidate outside the semantic cutoff when it contains a meaningful word
+     * used by the customer, preventing a documented FAQ from being discarded due
+     * to minor embedding-model variation.
+     */
+    private boolean hasSpecificKeywordOverlap(String query, String document) {
+        if (query == null || document == null || document.isBlank()) return false;
+        Set<String> queryTerms = significantTerms(query);
+        if (queryTerms.isEmpty()) return false;
+        Set<String> documentTerms = significantTerms(document);
+        for (String term : queryTerms) {
+            if (documentTerms.contains(term)) return true;
+        }
+        return false;
+    }
+
+    private Set<String> significantTerms(String value) {
+        Set<String> terms = new HashSet<>();
+        for (String word : value.toLowerCase(Locale.ROOT).split("[^a-z0-9]+")) {
+            if (word.length() >= 5 && !GENERIC_TERMS.contains(word)) terms.add(word);
+        }
+        return terms;
     }
 
     public record RetrievedChunk(String id, String document, double distance, String source, String category) {}

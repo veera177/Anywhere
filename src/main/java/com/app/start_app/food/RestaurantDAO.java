@@ -20,7 +20,13 @@ public class RestaurantDAO {
         String sql = """
                 SELECT *
                 FROM restaurants
-                WHERE (? IS NULL OR LOWER(district) = LOWER(?))
+                WHERE (? IS NULL OR EXISTS (
+                    SELECT 1
+                    FROM districts d
+                    WHERE (LOWER(d.code) = LOWER(?) OR LOWER(d.name) = LOWER(?))
+                      AND (LOWER(restaurants.district) = LOWER(d.code)
+                           OR LOWER(restaurants.district) = LOWER(d.name))
+                ))
                   AND (is_active IS NULL OR is_active = TRUE)
                 ORDER BY rating DESC
                 """;
@@ -45,6 +51,7 @@ public class RestaurantDAO {
                     try { r.setRatingCount(rs.getInt("rating_count")); } catch (Exception ignored) {}
                     return r;
                 },
+                district,
                 district,
                 district
         );

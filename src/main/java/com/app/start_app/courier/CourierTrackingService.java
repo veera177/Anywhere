@@ -3,8 +3,12 @@ package com.app.start_app.courier;
 import com.app.start_app.delivery.DeliveryFeeBreakdown;
 import com.app.start_app.delivery.DeliveryFeeCalculator;
 import com.app.start_app.delivery.DistanceCalculatorUtil;
+import com.app.start_app.user.ProfileDistrictService;
+import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,15 +23,25 @@ public class CourierTrackingService {
 
     private final CourierTrackingDAO courierTrackingDAO;
     private final DeliveryFeeCalculator deliveryFeeCalculator;
+    private final JdbcTemplate jdbcTemplate;
+    private final ProfileDistrictService profileDistrictService;
 
     public CourierTrackingService(CourierTrackingDAO courierTrackingDAO,
-                                  DeliveryFeeCalculator deliveryFeeCalculator) {
+                                  DeliveryFeeCalculator deliveryFeeCalculator,
+                                  JdbcTemplate jdbcTemplate,
+                                  ProfileDistrictService profileDistrictService) {
         this.courierTrackingDAO = courierTrackingDAO;
         this.deliveryFeeCalculator = deliveryFeeCalculator;
+        this.jdbcTemplate = jdbcTemplate;
+        this.profileDistrictService = profileDistrictService;
     }
 
     @Transactional
     public CourierRoute createRoute(CourierRoute route) {
+        // Pickup is only allowed inside the district saved in the user's profile.
+        // The drop can be in any district (the courier radius still applies).
+        requirePickupInProfileDistrict(route);
+
         double distanceKm = DistanceCalculatorUtil.calculateDistanceKm(
                 route.getPickupLatitude(), route.getPickupLongitude(),
                 route.getDeliveryLatitude(), route.getDeliveryLongitude());
@@ -39,6 +53,76 @@ public class CourierTrackingService {
         route.setId(routeId);
         route.setLocationHistory(courierTrackingDAO.findLocationsByRouteId(routeId));
         return route;
+    }
+
+    private void requirePickupInProfileDistrict(CourierRoute route) {
+        String profileDistrict = profileDistrictService.requireDistrict(route.getUserId());
+
+        if (!pickupInDistrict(route.getPickupLatitude(), route.getPickupLongitude(), profileDistrict)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    profileDistrictService.pickupDistrictMessage(profileDistrict)
+            );
+        }
+    }
+
+    /**
+     * A pickup point belongs to the profile district when the closest known area
+     * (district_areas) sits in that district. When the district has no areas
+     * recorded we fall back to its centre point.
+     */
+    private boolean pickupInDistrict(double latitude, double longitude, String districtCode) {
+        if (!Double.isFinite(latitude) || !Double.isFinite(longitude)) return false;
+
+        List<java.util.Map<String, Object>> areas = jdbcTemplate.queryForList(
+                """
+                SELECT a.district_id, a.latitude, a.longitude
+                FROM district_areas a
+                """
+        );
+
+        Integer profileDistrictId = districtId(districtCode);
+        if (profileDistrictId == null) return false;
+
+        Integer nearestDistrictId = null;
+        double nearest = Double.MAX_VALUE;
+
+        for (java.util.Map<String, Object> area : areas) {
+            double lat = ((Number) area.get("latitude")).doubleValue();
+            double lon = ((Number) area.get("longitude")).doubleValue();
+            double delta = Math.pow(lat - latitude, 2) + Math.pow(lon - longitude, 2);
+            if (delta < nearest) {
+                nearest = delta;
+                nearestDistrictId = ((Number) area.get("district_id")).intValue();
+            }
+        }
+
+        if (nearestDistrictId != null) {
+            return nearestDistrictId.equals(profileDistrictId);
+        }
+
+        // No areas recorded — compare against the district centre instead.
+        List<java.util.Map<String, Object>> centres = jdbcTemplate.queryForList(
+                "SELECT latitude, longitude FROM districts WHERE id = ?", profileDistrictId);
+        if (centres.isEmpty()) return false;
+
+        Object lat = centres.get(0).get("latitude");
+        Object lon = centres.get(0).get("longitude");
+        if (!(lat instanceof Number) || !(lon instanceof Number)) return false;
+
+        double distanceKm = DistanceCalculatorUtil.calculateDistanceKm(
+                ((Number) lat).doubleValue(), ((Number) lon).doubleValue(), latitude, longitude);
+        return distanceKm <= 60;
+    }
+
+    private Integer districtId(String districtCode) {
+        List<Integer> ids = jdbcTemplate.query(
+                "SELECT id FROM districts WHERE LOWER(code) = LOWER(?) OR LOWER(name) = LOWER(?)",
+                (rs, rowNum) -> rs.getInt("id"),
+                districtCode,
+                districtCode
+        );
+        return ids.isEmpty() ? null : ids.get(0);
     }
 
     @Transactional
@@ -71,6 +155,10 @@ public class CourierTrackingService {
     }
 
     public CourierRoute getRoute(Integer routeId) { return courierTrackingDAO.findRouteById(routeId); }
+
+    public RouteLocation getLocation(Integer locationId) {
+        return courierTrackingDAO.findLocationById(locationId);
+    }
 
     public double getTotalDistance(Integer routeId) {
         CourierRoute route = courierTrackingDAO.findRouteById(routeId);

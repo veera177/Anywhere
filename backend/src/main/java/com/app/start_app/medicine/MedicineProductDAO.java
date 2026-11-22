@@ -32,22 +32,27 @@ public class MedicineProductDAO {
 
         return jdbcTemplate.query(
                 sql,
-                (rs, rowNum) -> new MedicineProduct(
-                        rs.getInt("id"),
-                        rs.getString("district"),
-                        rs.getString("category"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getDouble("price"),
-                        rs.getInt("stock"),
-                        rs.getDouble("rating"),
-                        rs.getString("offer_tag"),
-                        rs.getString("dosage"),
-                        rs.getString("image_url"),
-                        rs.getBoolean("available"),
-                        rs.getString("pharmacy_name"),
-                        rs.getObject("pharmacy_id", Integer.class)
-                ),
+                (rs, rowNum) -> {
+                    MedicineProduct mp = new MedicineProduct(
+                            rs.getInt("id"),
+                            rs.getString("district"),
+                            rs.getString("category"),
+                            rs.getString("name"),
+                            rs.getString("description"),
+                            rs.getDouble("price"),
+                            rs.getInt("stock"),
+                            rs.getDouble("rating"),
+                            rs.getString("offer_tag"),
+                            rs.getString("dosage"),
+                            rs.getString("image_url"),
+                            rs.getBoolean("available"),
+                            rs.getString("pharmacy_name"),
+                            rs.getObject("pharmacy_id", Integer.class)
+                    );
+                    try { mp.setPrescriptionRequired(rs.getBoolean("prescription_required")); }
+                    catch (java.sql.SQLException ignore) {}
+                    return mp;
+                },
                 district,
                 district,
                 pharmacyId,

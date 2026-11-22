@@ -2,6 +2,7 @@ package com.app.start_app.prescription;
 
 import com.app.start_app.order.OrderItem;
 import com.app.start_app.platform.PlatformSettingDAO;
+import com.app.start_app.user.ProfileDistrictService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -24,18 +25,22 @@ public class PrescriptionService {
     private final PlatformSettingDAO settings;
     private final Path uploadDirectory;
     private final JdbcTemplate jdbcTemplate;
+    private final ProfileDistrictService profileDistrictService;
 
     public PrescriptionService(PrescriptionDAO prescriptionDAO, PlatformSettingDAO settings,
                                 @Value("${prescription.upload-dir:uploads/prescriptions}") String uploadDir,
-                                JdbcTemplate jdbcTemplate) {
+                                JdbcTemplate jdbcTemplate,
+                                ProfileDistrictService profileDistrictService) {
         this.prescriptionDAO = prescriptionDAO;
         this.settings = settings;
         this.uploadDirectory = Path.of(uploadDir).toAbsolutePath().normalize();
         this.jdbcTemplate = jdbcTemplate;
+        this.profileDistrictService = profileDistrictService;
     }
 
     // New upload method for prescription-required medicines (before adding to cart)
     public Prescription uploadForMedicine(Integer userId, Integer medicineId, Integer primaryPharmacyId, MultipartFile file) {
+        requireMedicineInProfileDistrict(userId, medicineId, primaryPharmacyId);
         validateFile(file);
         String fileUrl = storeFile(file);
         Long id = prescriptionDAO.insertForMedicine(userId, medicineId, primaryPharmacyId, fileUrl);
@@ -185,6 +190,27 @@ public class PrescriptionService {
             return jdbcTemplate.queryForObject(sql, String.class, pharmacyId);
         } catch (Exception e) {
             return "salem"; // fallback
+        }
+    }
+
+    /**
+     * A prescription request is a checkout precursor, so enforce the same
+     * profile-district boundary here as the order endpoint. This prevents a
+     * crafted request from being approved for a pharmacy the user cannot pay.
+     */
+    private void requireMedicineInProfileDistrict(Integer userId, Integer medicineId, Integer pharmacyId) {
+        String profileDistrict = profileDistrictService.requireDistrict(userId);
+        List<Integer> matches = jdbcTemplate.query("""
+                SELECT 1
+                FROM medicine_products mp
+                JOIN pharmacies p ON p.id = mp.pharmacy_id
+                JOIN districts d ON LOWER(p.district) = LOWER(d.code)
+                    OR LOWER(p.district) = LOWER(d.name)
+                WHERE mp.id = ? AND mp.pharmacy_id = ?
+                  AND LOWER(d.code) = LOWER(?)
+                """, (rs, row) -> rs.getInt(1), medicineId, pharmacyId, profileDistrict);
+        if (matches.isEmpty()) {
+            throw new IllegalArgumentException(profileDistrictService.shopDistrictMessage(profileDistrict));
         }
     }
 

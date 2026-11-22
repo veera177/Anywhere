@@ -3,6 +3,7 @@ package com.app.start_app.cart;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.app.start_app.security.CurrentUser;
+import com.app.start_app.user.ProfileDistrictService;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
@@ -14,15 +15,28 @@ import java.util.List;
 public class CartController {
 
     private final CartService cartService;
+    private final ProfileDistrictService profileDistrictService;
 
-    public CartController(CartService cartService) {
+    public CartController(CartService cartService, ProfileDistrictService profileDistrictService) {
         this.cartService = cartService;
+        this.profileDistrictService = profileDistrictService;
     }
 
-    // Add item to cart
+    // Add item to cart — only shops in the user's profile district are allowed
     @PostMapping("/add")
     public String addToCart(@RequestBody Cart cart, @AuthenticationPrincipal Integer userId) {
-        cart.setUserId(CurrentUser.require(userId));
+        Integer currentUserId = CurrentUser.require(userId);
+        cart.setUserId(currentUserId);
+
+        String profileDistrict = profileDistrictService.requireDistrict(currentUserId);
+        String shopDistrict = cartService.getShopDistrict(cart.getServiceType(), cart.getProductId());
+
+        if (shopDistrict != null && !shopDistrict.equalsIgnoreCase(profileDistrict)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    profileDistrictService.shopDistrictMessage(profileDistrict)
+            );
+        }
 
         String result = cartService.addToCart(cart);
 
@@ -33,6 +47,10 @@ public class CartController {
 
             case "QUANTITY_UPDATED":
                 return "Item Quantity Updated";
+
+            case "OUT_OF_STOCK":
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "This item is not available right now");
 
             default:
                 return "Failed to Add Item";

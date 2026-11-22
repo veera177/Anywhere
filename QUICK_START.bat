@@ -39,7 +39,9 @@ if %errorLevel% neq 0 (
 echo ✓ MySQL is running
 
 echo.
-cd /d d:\springboot\start-app\start-app
+REM Always run from this script's own folder. The project can be moved to
+REM another drive without breaking Spring Boot's RAG dependency launcher.
+cd /d "%~dp0"
 
 echo ═══════════════════════════════════════════════════════════════
 echo Starting Spring Boot Backend...
@@ -48,8 +50,7 @@ echo.
 echo Backend will be available at: http://localhost:8080
 echo Health check: http://localhost:8080/actuator/health
 echo.
-echo Make sure MySQL database "anywhere" is initialized
-echo Run: mysql -u root -p < D:\anywhere\SETUP_DATABASE.sql
+echo Make sure MySQL database "anywhere" is initialized.
 echo.
 
 mvn spring-boot:run

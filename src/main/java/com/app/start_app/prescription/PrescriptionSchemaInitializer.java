@@ -93,7 +93,7 @@ public class PrescriptionSchemaInitializer {
         ensureSetting("district.salem.tier", "2");
         ensureSetting("district.karaikudi.tier", "3");
 
-        ensureSetting("delivery.food.radius_km", "20");
+        ensureSetting("delivery.food.radius_km", "15");
         ensureSetting("delivery.food.base_distance_km", "3");
         ensureSetting("delivery.food.first_band_limit_km", "8");
         ensureSetting("delivery.food.free_delivery_threshold", "199");

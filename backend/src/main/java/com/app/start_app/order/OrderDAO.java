@@ -79,12 +79,13 @@ public class OrderDAO {
     public void insertItem(Integer orderId, OrderItem item) {
         String sql = """
                 INSERT INTO order_items
-                (order_id, product_id, service_type, product_name, price, quantity, subtotal)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                (order_id, product_id, service_type, product_name, price, quantity, subtotal, prescription_required)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         BigDecimal subtotal = item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+        boolean rx = Boolean.TRUE.equals(item.getPrescriptionRequired());
         jdbcTemplate.update(sql, orderId, item.getProductId(), item.getServiceType(),
-                item.getProductName(), item.getPrice(), item.getQuantity(), subtotal);
+                item.getProductName(), item.getPrice(), item.getQuantity(), subtotal, rx);
     }
 
     public void clearCart(Integer userId) {
@@ -160,6 +161,8 @@ public class OrderDAO {
             item.setPrice(rs.getBigDecimal("price"));
             item.setQuantity(rs.getInt("quantity"));
             item.setSubtotal(rs.getBigDecimal("subtotal"));
+            try { item.setPrescriptionRequired(rs.getBoolean("prescription_required")); }
+            catch (java.sql.SQLException ignore) { item.setPrescriptionRequired(false); }
             return item;
         }, orderId);
     }

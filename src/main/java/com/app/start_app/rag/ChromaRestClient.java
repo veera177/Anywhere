@@ -47,21 +47,20 @@ public class ChromaRestClient {
 
     public String getOrCreateCollection(String name) {
         try {
-            String getUrl = collectionUrl(name);
-            try {
-                String response = restTemplate.getForObject(getUrl, String.class);
-                JsonNode node = objectMapper.readTree(response);
-                if (node.has("id")) {
-                    return node.get("id").asText();
-                }
-            } catch (Exception notFoundOrError) {
-                // Not found, create it
+            // Chroma v2 addresses existing collections by UUID, not by their
+            // display name.  Resolve the name from the database collection list.
+            String existing = findCollectionId(name);
+            if (existing != null) {
+                return existing;
             }
 
             String createUrl = collectionsUrl();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            Map<String, Object> body = Map.of("name", name);
+            Map<String, Object> body = Map.of(
+                    "name", name,
+                    "configuration", Map.of("hnsw", Map.of("space", "cosine"))
+            );
             HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(body), headers);
             String response = restTemplate.postForObject(createUrl, entity, String.class);
             JsonNode node = objectMapper.readTree(response);
@@ -73,6 +72,18 @@ public class ChromaRestClient {
             throw new IllegalStateException("Failed to get/create Chroma v2 collection '" + name + "': " + describe(e), e);
         }
         throw new IllegalStateException("Collection ID could not be determined for: " + name);
+    }
+
+    private String findCollectionId(String name) throws Exception {
+        String response = restTemplate.getForObject(collectionsUrl(), String.class);
+        JsonNode collections = objectMapper.readTree(response);
+        if (!collections.isArray()) return null;
+        for (JsonNode collection : collections) {
+            if (name.equals(collection.path("name").asText()) && collection.has("id")) {
+                return collection.path("id").asText();
+            }
+        }
+        return null;
     }
 
     public int count(String collectionId) {

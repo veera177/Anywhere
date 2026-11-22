@@ -3,6 +3,8 @@ package com.app.start_app.user;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.app.start_app.security.CurrentUser;
 
 @RestController
 @RequestMapping("/api/users")
@@ -16,7 +18,8 @@ public class UserProfileController {
     }
 
     @GetMapping("/{id}/profile")
-    public ResponseEntity<User> getProfile(@PathVariable Integer id) {
+    public ResponseEntity<User> getProfile(@PathVariable Integer id, @AuthenticationPrincipal Integer authenticatedUserId) {
+        CurrentUser.owns(authenticatedUserId, id);
 
         User user = userDAO.getUserById(id);
 
@@ -30,8 +33,10 @@ public class UserProfileController {
     @PutMapping("/{id}/profile")
     public ResponseEntity<User> updateProfile(
             @PathVariable Integer id,
-            @RequestBody User user
+            @RequestBody User user,
+            @AuthenticationPrincipal Integer authenticatedUserId
     ) {
+        CurrentUser.owns(authenticatedUserId, id);
 
         int result = userDAO.updateProfile(id, user);
 

@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -72,6 +73,10 @@ public class SecurityConfig {
                         // Auth endpoints - no auth required
                         .requestMatchers("/api/auth/register").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
+                        // General AI questions are available before sign-in. Account
+                        // actions inside the assistant still require the JWT in their
+                        // own handlers, so a chat message cannot sign a visitor out.
+                        .requestMatchers("/api/ai/**").permitAll()
 
                         // Browse endpoints - public, no login required
                         .requestMatchers("/api/restaurants/**").permitAll()
@@ -87,14 +92,20 @@ public class SecurityConfig {
                         .requestMatchers("/api/distance/**").permitAll()
                         .requestMatchers("/api/coupons/validate").permitAll()
 
-                        // Ratings read — public so shop cards show ratings without login
-                        .requestMatchers("/api/ratings/**").permitAll()
+                        // Ratings are visible on shop cards before sign-in. Submitting a
+                        // rating remains an authenticated action.
+                        .requestMatchers(HttpMethod.GET, "/api/ratings/**").permitAll()
 
                         // Health check - public
                         .requestMatchers("/actuator/health").permitAll()
 
+                        // Local-dev RAG reindex shortcut (IP-restricted inside the controller)
+                        .requestMatchers("/api/rag/reindex").permitAll()
+
                         // Admin endpoints require ADMIN role
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/test/**").hasRole("ADMIN")
+                        .requestMatchers("/api/prescriptions/test-multipart").hasRole("ADMIN")
 
                         // All other /api/** endpoints require authentication
                         .requestMatchers("/api/**").authenticated()

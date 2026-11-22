@@ -20,7 +20,13 @@ public class PharmacyDAO {
         String sql = """
                 SELECT *
                 FROM pharmacies
-                WHERE (? IS NULL OR LOWER(district) = LOWER(?))
+                WHERE (? IS NULL OR EXISTS (
+                    SELECT 1
+                    FROM districts d
+                    WHERE (LOWER(d.code) = LOWER(?) OR LOWER(d.name) = LOWER(?))
+                      AND (LOWER(pharmacies.district) = LOWER(d.code)
+                           OR LOWER(pharmacies.district) = LOWER(d.name))
+                ))
                 ORDER BY rating DESC
                 """;
 
@@ -40,6 +46,7 @@ public class PharmacyDAO {
                     p.setLongitude(rs.getObject("longitude", Double.class));
                     return p;
                 },
+                district,
                 district,
                 district
         );

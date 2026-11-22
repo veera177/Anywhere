@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -13,11 +14,14 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** Indexes bundled customer knowledge into the existing Chroma collection. */
 @Service
+@DependsOn("ragDependencyManager")
 public class KnowledgeIngestService {
     private static final Logger log = LoggerFactory.getLogger(KnowledgeIngestService.class);
     private static final List<String> KNOWLEDGE_FILES = List.of(
@@ -42,15 +46,26 @@ public class KnowledgeIngestService {
 
     @PostConstruct
     public void init() {
-        try {
-            if (!chromaClient.isHealthy()) {
-                log.warn("Chroma is not reachable during startup knowledge ingestion check.");
-                return;
-            }
-            log.info("Knowledge startup check completed; {} changed chunks indexed in '{}'.", ingestAll(), collectionName);
-        } catch (Exception exception) {
-            log.warn("Knowledge initial ingestion skipped/failed: {}", exception.getMessage());
+        if (!chromaClient.isHealthy()) {
+            log.warn("Chroma is not reachable during startup knowledge ingestion check.");
+            return;
         }
+        // Run ingestion in a background thread so the app starts immediately.
+        ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "knowledge-ingest");
+            t.setDaemon(true);
+            return t;
+        });
+        executor.submit(() -> {
+            try {
+                int indexed = ingestAll();
+                log.info("Knowledge startup check completed; {} changed chunks indexed in '{}'.", indexed, collectionName);
+            } catch (Exception exception) {
+                log.warn("Knowledge initial ingestion skipped/failed: {}", exception.getMessage());
+            } finally {
+                executor.shutdown();
+            }
+        });
     }
 
     /** Reindexes only changed source documents. IDs are stable and Chroma uses upsert, never blind deletion. */
